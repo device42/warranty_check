@@ -117,10 +117,11 @@ def main():
         for order in orders['purchases']:
             line_items =  order['line_items']
             for line_item in line_items:
-                end   = line_item['line_end_date']
-                start = line_item['line_start_date']
-                devices = line_item['devices']
-                for device in devices:
+                end   = line_item.get('line_end_date')
+                start = line_item.get('line_start_date')
+                devices = line_item.get('devices')
+		if devices:
+                  for device in devices:
                     serial = device['serial_no']
                     dates.update({serial:[start,end]})
                     if serial not in already_there:
@@ -130,29 +131,31 @@ def main():
     items = [[x['device_id'],x['serial_no'],x['manufacturer']] for x in devices['Devices'] if x['serial_no'] and  x['manufacturer']]
     for item in items:
         d42_id, serial, vendor = item
+        print '\t[+] DELL serial #: %s' % serial
         if 'dell' in vendor.lower():
-            print '\t[+] Dell serial #: %s' % serial
-            if len(serial) <= 7: # testing only original DELL...remove this
-                warranty = dell.run_warranty_check(serial)
-                if warranty:
-                    if 'line_end_date' in warranty:
-                        wend   = warranty['line_end_date']
-                        wstart = warranty['line_start_date']
+            #if len(serial) <= 7: # testing only original DELL...remove this
+            warranty = dell.run_warranty_check(serial)
+            if warranty:
+                wend   = warranty.get('line_end_date')
+                wstart = warranty.get('line_start_date')
+
+                # update or duplicate? Compare warranty dates by serial
+                if serial in already_there:
+                    dstart, dend = dates[serial]
+                    if dstart == wstart and dend == wend: # duplicate
+                        print '[!] Duplicate found. Purchase for SKU "%s" is already uploaded' % serial
                     else:
-                        wend = ""
-                        wstart = ""
-                    if serial in already_there:
-                        dstart, dend = dates[serial]
-                        if dstart == wstart and dend == wend: # duplicate
-                            print '[!] Duplicate found. Purchase for SKU "%s" is already uploaded' % serial
-                        else:
-                            # add new line_item
-                            d42.upload_data(warranty)
-                    else:
-                        # upload new warranty and add it's serial to 'already_there'
+                        # add new line_item
                         d42.upload_data(warranty)
-                        already_there.append(serial)
+                else:
+                    # upload new warranty and add it's serial to 'already_there'
+                    d42.upload_data(warranty)
+                    already_there.append(serial)
+
+
 
 if __name__ == '__main__':
     main()
     sys.exit()
+
+
