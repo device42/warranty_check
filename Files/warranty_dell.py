@@ -117,15 +117,15 @@ def main():
         for order in orders['purchases']:
             line_items =  order['line_items']
             for line_item in line_items:
-                end   = line_item.get('line_end_date')
-                start = line_item.get('line_start_date')
-                devices = line_item.get('devices')
+		end   = line_item.get('line_end_date')
+		start = line_item.get('line_start_date')
+		devices = line_item.get('devices')
 		if devices:
-                  for device in devices:
-                    serial = device['serial_no']
-                    dates.update({serial:[start,end]})
-                    if serial not in already_there:
-                        already_there.append(serial)
+		  for device in devices:
+		    serial = device['serial_no']
+		    dates.update({serial:[start,end]})
+		    if serial not in already_there:
+			already_there.append(serial)
 
     devices = d42.get_serials()
     items = [[x['device_id'],x['serial_no'],x['manufacturer']] for x in devices['Devices'] if x['serial_no'] and  x['manufacturer']]
