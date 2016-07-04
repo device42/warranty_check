@@ -114,17 +114,18 @@ def main():
     already_there = []
     dates   = {}
     if orders:
-        for order in orders:
+        for order in orders['purchases']:
             line_items =  order['line_items']
             for line_item in line_items:
-                end   = line_item['line_end_date']
-                start = line_item['line_start_date']
-                devices = line_item['devices']
-                for device in devices:
-                    serial = device['serial_no']
-                    dates.update({serial:[start,end]})
-                    if serial not in already_there:
-                        already_there.append(serial)
+		end   = line_item.get('line_end_date')
+		start = line_item.get('line_start_date')
+		devices = line_item.get('devices')
+		if devices:
+		  for device in devices:
+		    serial = device['serial_no']
+		    dates.update({serial:[start,end]})
+		    if serial not in already_there:
+			already_there.append(serial)
 
     devices = d42.get_serials()
     items = [[x['device_id'],x['serial_no'],x['manufacturer']] for x in devices['Devices'] if x['serial_no'] and  x['manufacturer']]
@@ -135,8 +136,8 @@ def main():
             #if len(serial) <= 7: # testing only original DELL...remove this
             warranty = dell.run_warranty_check(serial)
             if warranty:
-                wend   = warranty['line_end_date']
-                wstart = warranty['line_start_date']
+                wend   = warranty.get('line_end_date')
+                wstart = warranty.get('line_start_date')
 
                 # update or duplicate? Compare warranty dates by serial
                 if serial in already_there:
