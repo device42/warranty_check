@@ -38,7 +38,7 @@ class Device42():
 
     def get_serials(self):
         print '\n[!] Fetching serials from Device42'
-        api_path = "api/1.0/devices/all"
+        api_path = "/api/1.0/devices/all/"
         cols     = "?include_cols=serial_no,device_id,manufacturer"
         path     = api_path + cols
         response = self.get_data(path)
@@ -46,6 +46,6 @@ class Device42():
 
     def get_purchases(self):
         print '\n[!] Fetching order numbers from Device42'
-        path     = '/api/1.0/purchases/'
-        response = self.get_data(path)
+        api_path     = '/api/1.0/purchases/'
+        response = self.get_data(api_path)
         return response
