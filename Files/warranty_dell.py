@@ -114,17 +114,17 @@ def main():
     already_there = []
     dates   = {}
 
-    if orders and orders.has_key('purchases'):
+    if orders and 'purchases' in orders:
         for order in orders['purchases']:
-            if order.has_key('line_items'):
-                line_items =  order['line_items']
+            if 'line_items' in order:
+                line_items = order['line_items']
                 for line_item in line_items:
                     end = line_item.get('line_end_date')
                     start = line_item.get('line_start_date')
                     devices = line_item.get('devices')
                     if devices:
                         for device in devices:
-                            if device.has_key('serial_no'):
+                            if 'serial_no' in device:
                                 serial = device['serial_no']
                                 if serial not in already_there:
                                     already_there.append(serial)
@@ -132,8 +132,8 @@ def main():
                                     dates.update({serial: [start, end]})
 
     devices = d42.get_serials()
-    if devices and devices.has_key('Devices'):
-        items = [[x['device_id'],x['serial_no'],x['manufacturer']] for x in devices['Devices'] if x['serial_no'] and  x['manufacturer']]
+    if devices and 'Devices' in devices:
+        items = [[x['device_id'], x['serial_no'], x['manufacturer']] for x in devices['Devices'] if x['serial_no'] and x['manufacturer']]
         for item in items:
             try:
                 d42_id, serial, vendor = item
