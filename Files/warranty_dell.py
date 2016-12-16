@@ -33,6 +33,7 @@ class DELL():
         payload         = {'id': service_tag, 'apikey': self.api_key, 'accept':'Application/json'}
         for x in range(self.retry):
             try:
+                time.sleep(1)
                 resp    = requests.get(self.url, params=payload, verify=True, timeout=timeout)
                 result  = resp.json()
                 data    = self.process_result(result, service_tag)
