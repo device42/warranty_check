@@ -39,7 +39,7 @@ class IBM:
         soup = BS(su.unescape(result))
         ibm_data = {}
         try:
-            table = soup.find('table', {'class':'ibm-data-table'})
+            table = soup.find('table', {'class': 'ibm-data-table'})
             rows = table.findAll('tr')
             data = [[td.findChildren(text=True) for td in tr.findAll('td')] for tr in rows]
 
@@ -90,7 +90,6 @@ def main():
         sys.exit()
     # init
     d42 = Device42(d42_username, d42_password, d42_url, debug, retry)
-    ibm = IBM(ibm_url, debug, retry, order_no_type)
 
     # get data from Device42
     orders = d42.get_purchases()
@@ -138,4 +137,3 @@ def main():
 
         """
         print '[!] IBM warranty check is not implemented yet.'
-

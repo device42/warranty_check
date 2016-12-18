@@ -189,12 +189,12 @@ class HP:
         if self.debug:
             print '[+] Manufacturer: HP'
             print '\tSerial: %s \t Part number: %s' % (serial, product_number)
-        self.data.update({'manufacturer':'HP'})
-        self.data.update({'serial_no':serial})
-        self.data.update({'product_no':product_number})
+        self.data.update({'manufacturer': 'HP'})
+        self.data.update({'serial_no': serial})
+        self.data.update({'product_no': product_number})
         try:
             product = soup.find('productdescription').text
-            self.data.update({'description':product})
+            self.data.update({'description': product})
             if self.debug:
                 print '\tProduct: %s\n' % product.replace('\n', '').strip()
 
@@ -212,10 +212,10 @@ class HP:
                 start_date = offer.find('startdate').text
                 end_date = offer.find('enddate').text
 
-                device.update({'service':service})
-                device.update({'status':status})
-                device.update({'start_date':start_date})
-                device.update({'end_date':end_date})
+                device.update({'service': service})
+                device.update({'status': status})
+                device.update({'start_date': start_date})
+                device.update({'end_date': end_date})
                 self.devices.append(device)
 
                 if self.debug:
@@ -240,10 +240,10 @@ def get_timestamp():
     mon = str(time.localtime()[1])
     d = str(time.localtime()[2])
     h = str(time.localtime()[3])
-    min = str(time.localtime()[4])
+    minutes = str(time.localtime()[4])
     s = str(time.localtime()[5])
     zone = 'EST'
-    timestamp = y+'/'+mon+'/'+d+' '+h+':'+min+':'+s+' '+zone
+    timestamp = y+'/'+mon+'/'+d+' '+h+':'+minutes+':'+s+' '+zone
     return timestamp
 
 
@@ -254,7 +254,6 @@ def main():
 
     # init
     d42 = Device42(d42_username, d42_password, d42_url, debug, retry)
-    hp = HP(hp_url, debug, retry, order_no_type)
 
     # get data from Device42
     orders = d42.get_purchases()
