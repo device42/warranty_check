@@ -14,17 +14,16 @@ except:
     pass
 
 
-class HP():
+class HP:
     def __init__(self, hp_url, debug, retry, order_no_type):
-        self.url            = hp_url
-        self.debug          = debug
-        self.retry          = retry
-        self.o_type         = order_no_type
-        self.token          = None
-        self.gdid           = None
-        self.data           = {}
-        self.devices        = []
-
+        self.url = hp_url
+        self.debug = debug
+        self.retry = retry
+        self.o_type = order_no_type
+        self.token = None
+        self.gdid = None
+        self.data = {}
+        self.devices = []
 
     def register(self, serial_number):
         soap_payload = """
@@ -86,26 +85,29 @@ class HP():
             </SOAP-ENV:Envelope>
         """
 
-        timestamp   = get_timestamp()
-        message     = (soap_payload % (timestamp, serial_number, timestamp)).encode('utf-8')
+        timestamp = get_timestamp()
+        message = (soap_payload % (timestamp, serial_number, timestamp)).encode('utf-8')
 
-        headers     = {"SOAPAction":"http://www.hp.com/isee/webservices/RegisterClient2",
-                        "Content-Type": "text/xml; charset=UTF-8",
-                       "Content-Length": len(message)
-                       }
+        headers = {
+            "SOAPAction": "http://www.hp.com/isee/webservices/RegisterClient2",
+            "Content-Type": "text/xml; charset=UTF-8",
+            "Content-Length": len(message)
+        }
 
         for x in range(self.retry):
-            r = requests.post(url="https://services.isee.hp.com/ClientRegistration/ClientRegistrationService.asmx",
-                                     headers = headers,
-                                     data = message,
-                                     verify=False)
+            r = requests.post(
+                url="https://services.isee.hp.com/ClientRegistration/ClientRegistrationService.asmx",
+                headers=headers,
+                data=message,
+                verify=False
+            )
 
-            soup     = BS(r.text)
+            soup = BS(r.text)
             gdid_raw = soup.findAll('gdid')
 
             try:
-                self.gdid   = gdid_raw[0].text
-                rtoken_raw  = soup.findAll('registrationtoken')
+                self.gdid = gdid_raw[0].text
+                rtoken_raw = soup.findAll('registrationtoken')
                 self.rtoken = rtoken_raw[0].text
                 if self.debug:
                     print '\n[!] Registration successful. GDID acquired: %s' % self.gdid
@@ -113,7 +115,7 @@ class HP():
             except IndexError:
                 try:
                     msg_raw = soup.findAll('message')
-                    msg     = msg_raw[0].text
+                    msg = msg_raw[0].text
                     print '[!] Exception: %s' % msg
                     if "failed to get gdid" in msg.lower():
                         url = 'http://h20564.www2.hp.com/hpsc/doc/public/display?docId=emr_na-c03062621'
@@ -163,26 +165,24 @@ class HP():
         """
 
         message = (soap_payload % (self.gdid, self.rtoken, serial, product_number)).encode('utf-8')
-        headers = {"SOAPAction":"http://www.hp.com/isee/webservices/GetOOSEntitlementList2",
-                        "Content-Type": "text/xml; charset=UTF-8",
-                       "Content-Length": len(message)
-                       }
+        headers = {
+            "SOAPAction": "http://www.hp.com/isee/webservices/GetOOSEntitlementList2",
+            "Content-Type": "text/xml; charset=UTF-8",
+            "Content-Length": len(message)
+        }
+
         for x in range(self.retry):
             try:
-                resp    = requests.post(url=self.url, headers = headers, data = message, verify=False)
-                result  = resp.text
-                data    = self.process_result(result, serial, product_number)
+                resp = requests.post(url=self.url, headers=headers, data=message, verify=False)
+                result = resp.text
+                data = self.process_result(result, serial, product_number)
                 return data
             except requests.RequestException as e:
-                msg     = str(e)
+                msg = str(e)
                 print '\n[!] HTTP error. Message was: %s' % msg
-
-
 
     def process_result(self, result, serial, product_number):
         soup = BS(su.unescape(result))
-        #xml  = dom.parseString(result)
-        #print xml.toprettyxml()
         print soup.prettify()
         time.sleep(1)
 
@@ -199,18 +199,18 @@ class HP():
                 print '\tProduct: %s\n' % product.replace('\n', '').strip()
 
             for offer in soup.findAll('offer'):
-                device      = {}
-                service     = offer.find('offerdescription').text
-                scode       = offer.find('status').text
-                status      = 'Unknown'
+                device = {}
+                service = offer.find('offerdescription').text
+                scode = offer.find('status').text
+                status = 'Unknown'
 
                 if scode.lower() == 'a':
-                    status   = 'Active'
+                    status = 'Active'
                 elif scode.lower() == 'x':
-                    status   = 'Expired'
+                    status = 'Expired'
 
                 start_date = offer.find('startdate').text
-                end_date   = offer.find('enddate').text
+                end_date = offer.find('enddate').text
 
                 device.update({'service':service})
                 device.update({'status':status})
@@ -219,32 +219,33 @@ class HP():
                 self.devices.append(device)
 
                 if self.debug:
-                    print '\t[*] Service: %s'  % service
-                    print '\t\tStatus: %s'       % status
+                    print '\t[*] Service: %s' % service
+                    print '\t\tStatus: %s' % status
                     print '\t\tStart date: %s' % start_date
-                    print '\t\tEnd date: %s'    % end_date
-            self.data.update({'items':self.devices})
+                    print '\t\tEnd date: %s' % end_date
+            self.data.update({'items': self.devices})
             return self.data
 
         except:
             try:
-                errorx  = soup.findAll('errortext')
-                error  = errorx[0].text
+                errorx = soup.findAll('errortext')
+                error = errorx[0].text
                 print '[!] Error. Message was: %s' % error
             except Exception,  e:
                 print '[!] Exception. Message was: %s' % str(e)
 
 
 def get_timestamp():
-    y       = str(time.localtime()[0])
-    mon     = str(time.localtime()[1])
-    d       = str(time.localtime()[2])
-    h       = str(time.localtime()[3])
-    min     = str(time.localtime()[4])
-    s       = str(time.localtime()[5])
-    zone    = 'EST'
+    y = str(time.localtime()[0])
+    mon = str(time.localtime()[1])
+    d = str(time.localtime()[2])
+    h = str(time.localtime()[3])
+    min = str(time.localtime()[4])
+    s = str(time.localtime()[5])
+    zone = 'EST'
     timestamp = y+'/'+mon+'/'+d+' '+h+':'+min+':'+s+' '+zone
     return timestamp
+
 
 def main():
     # get settings from config file
@@ -252,28 +253,30 @@ def main():
            hp_url, debug, retry, order_no_type = config.get_config('hp')
 
     # init
-    d42  = Device42(d42_username, d42_password, d42_url, debug, retry)
+    d42 = Device42(d42_username, d42_password, d42_url, debug, retry)
     hp = HP(hp_url, debug, retry, order_no_type)
 
     # get data from Device42
     orders = d42.get_purchases()
     already_there = []
-    dates   = {}
+    dates = {}
     if orders:
         for order in orders:
-            line_items =  order['line_items']
+            line_items = order['line_items']
             for line_item in line_items:
-                end   = line_item['line_end_date']
+                end = line_item['line_end_date']
                 start = line_item['line_start_date']
                 devices = line_item['devices']
                 for device in devices:
                     serial = device['serial_no']
-                    dates.update({serial:[start,end]})
+                    dates.update({serial: [start, end]})
                     if serial not in already_there:
                         already_there.append(serial)
 
     devices = d42.get_serials()
-    items = [[x['device_id'],x['serial_no'],x['manufacturer']] for x in devices['Devices'] if x['serial_no'] and  x['manufacturer']]
+    items = [[x['device_id'], x['serial_no'], x['manufacturer']] for x in
+             devices['Devices'] if x['serial_no'] and x['manufacturer']]
+
     for item in items:
         d42_id, serial, vendor = item
         print '\t[+] HP serial #: %s' % serial
