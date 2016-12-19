@@ -1,27 +1,27 @@
 [device42]
 # set Device42 params
-username = admin
-password = adm!nd42
-url      = https://192.168.3.30/
+username =
+password =
+url =
 
 
 
 [dell]
 # set api_key as provided by Dell
-api_key  =
-url      = https://sandbox.api.dell.com/support/assetinfo/v4/getassetwarranty
+api_key =
+url = https://sandbox.api.dell.com/support/assetinfo/v4/getassetwarranty
 
 [ibm]
-url      = https://www-947.ibm.com/support/entry/portal/wlup/
+url = https://www-947.ibm.com/support/entry/portal/wlup/
 
 [hp]
-url      = https://services.isee.hp.com/EntitlementCheck/EntitlementCheckService.asmx
+url = https://services.isee.hp.com/EntitlementCheck/EntitlementCheckService.asmx
 
 [other]
 # print verbose info to STDOUT
-debug	 = True
+debug = True
 # number of retries for HTTP connections
-retry	 = 3
+retry = 3
 # order number type can be one of:
 #	1. vendor   - order number is returned from vendor
 #	2. common   - order number is randomly generated and same for all purchases
