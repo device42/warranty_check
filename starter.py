@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 
-import files.warranty_dell as dell
+import Files.warranty_dell as dell
 
 
 def main():
