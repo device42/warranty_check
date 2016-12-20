@@ -70,7 +70,6 @@ class DELL:
                 order_no = self.generate_random_order_no()
 
             serial = service_tag
-
             '''
             For future implementation of registering the purchase date as a lifecycle event
             Add a lifecycle event for the system
@@ -136,21 +135,24 @@ class DELL:
                 data.update({'line_start_date': start_date})
                 data.update({'line_end_date': end_date})
 
+                item = serial + line_contract_id + w_end
                 # update or duplicate? Compare warranty dates by serial, contract_id and end date
-                if serial + line_contract_id + w_end in already_there:
-                    try:
-                        dstart, dend = dates[serial + line_contract_id + w_end]
-                        # duplicate
-                        if dstart == w_start and dend == w_end:
-                            print '\t[!] Duplicate found. Purchase ' \
-                                  'for SKU "%s" and "%s" with end date "%s" ' \
-                                  'is already uploaded' % (serial, line_contract_id, w_end)
-                        else:
-                            # add new line_item
-                            d42.upload_data(data)
-                    except:
-                        print '\t[!] KeyError. Purchase for SKU "%s" and "%s" ' \
-                              'with end data "%s" failed' % (serial, line_contract_id, w_end)
+                if item in already_there:
+                    if item not in processed:
+                        processed.append(item)
+                        try:
+                            dstart, dend = dates[serial + line_contract_id + w_end]
+                            # duplicate
+                            if dstart == w_start and dend == w_end:
+                                print '\t[!] Duplicate found. Purchase ' \
+                                      'for SKU "%s" and "%s" with end date "%s" ' \
+                                      'is already uploaded' % (serial, line_contract_id, w_end)
+                            else:
+                                # add new line_item
+                                d42.upload_data(data)
+                        except:
+                            print '\t[!] KeyError. Purchase for SKU "%s" and "%s" ' \
+                                  'with end data "%s" failed' % (serial, line_contract_id, w_end)
                 else:
                     # upload new warranty to 'already_there'
                     d42.upload_data(data)
@@ -214,7 +216,7 @@ def getdevices(offset, models, previous):
 
 
 def main():
-    global already_there, d42, dell, dates, models
+    global already_there, processed, d42, dell, dates, models
     # get settings from config file
     d42_username, d42_password, d42_url, dell_api_key, dell_url, debug, retry, order_no_type = config.get_config('dell')
 
@@ -225,6 +227,7 @@ def main():
     # get purchase data from Device42
     orders = d42.get_purchases()
     already_there = []
+    processed = []
     dates = {}
 
     if orders and 'purchases' in orders:
