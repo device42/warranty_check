@@ -137,9 +137,9 @@ class DELL:
                 data.update({'line_end_date': end_date})
 
                 # update or duplicate? Compare warranty dates by serial, contract_id and end date
-                if serial+line_contract_id+w_end in already_there:
+                if serial + line_contract_id + w_end in already_there:
                     try:
-                        dstart, dend = dates[serial+line_contract_id+w_end]
+                        dstart, dend = dates[serial + line_contract_id + w_end]
                         # duplicate
                         if dstart == w_start and dend == w_end:
                             print '\t[!] Duplicate found. Purchase ' \
@@ -241,10 +241,11 @@ def main():
                         for device in devices:
                             if 'serial_no' in device:
                                 serial = device['serial_no']
-                                if serial+line_contract_id + end not in already_there:
-                                    already_there.append(serial + line_contract_id+end)
+
+                                if serial + line_contract_id + end not in already_there:
+                                    already_there.append(serial + line_contract_id + end)
                                 if start and end:
-                                    dates.update({serial + line_contract_id+end: [start, end]})
+                                    dates.update({serial + line_contract_id + end: [start, end]})
 
     '''
     For future implementation of registering the purchase date as a lifecycle event
