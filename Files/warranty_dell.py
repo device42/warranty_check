@@ -140,29 +140,18 @@ class DELL:
                 data.update({'line_start_date': start_date})
                 data.update({'line_end_date': end_date})
 
-                item = serial + line_contract_id + end_date
-
                 # update or duplicate? Compare warranty dates by serial, contract_id and end date
-                if item not in purchases:
-                    try:
-                        dstart, dend = purchases[serial + line_contract_id + end_date]
-                        # duplicate
-                        if dstart == start_date and dend == end_date:
-                            print '\t[!] Duplicate found. Purchase ' \
-                                  'for SKU "%s" and "%s" with end date "%s" ' \
-                                  'is already uploaded' % (serial, line_contract_id, end_date)
-                        else:
-                            # add new line_item
-                            self.d42_rest.upload_data(data)
-                    except:
-                        print '\t[!] KeyError. Purchase for SKU "%s" and "%s" ' \
-                              'with end data "%s" failed' % (serial, line_contract_id, end_date)
-                else:
-                    # upload new warranty for already purchased
+                hasher = serial + line_contract_id + end_date
+                try:
+                    d_start, d_end = purchases[hasher]
+                    # check for duplicate state
+                    if d_start == start_date and d_end == end_date:
+                        print '\t[!] Duplicate found. Purchase ' \
+                              'for SKU "%s" and "%s" with end date "%s" ' \
+                              'is already uploaded' % (serial, line_contract_id, end_date)
+                except KeyError:
                     self.d42_rest.upload_data(data)
-                    purchases[item] = [start_date, end_date]
-
-                data.clear()
+                    data.clear()
 
     @staticmethod
     def generate_random_order_no():
@@ -231,8 +220,8 @@ def main():
                         for device in devices:
                             if 'serial_no' in device:
                                 serial = device['serial_no']
-                                hash = serial + line_contract_id + end
-                                if hash not in purchases:
+                                hasher = serial + line_contract_id + end
+                                if hasher not in purchases:
                                     purchases[serial + line_contract_id + end] = [start, end]
 
 
@@ -292,9 +281,6 @@ def main():
                         if result is not None:
                             dell_api.process_result(result, serial, purchases)
             offset += 100
-            print 'added offset'
-            if offset == 500:
-                break
         else:
             print '\n[!] Finished'
             break
