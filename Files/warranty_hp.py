@@ -6,7 +6,7 @@ from xml.sax import saxutils as su
 import requests
 
 import shared as config
-from uploader import Device42
+from rest import Device42_rest
 
 try:
     requests.packages.urllib3.disable_warnings()
@@ -253,7 +253,7 @@ def main():
            hp_url, debug, retry, order_no_type = config.get_config('hp')
 
     # init
-    d42 = Device42(d42_username, d42_password, d42_url, debug, retry)
+    d42 = Device42_rest(d42_username, d42_password, d42_url, debug, retry)
 
     # get data from Device42
     orders = d42.get_purchases()

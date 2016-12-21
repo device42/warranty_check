@@ -3,7 +3,7 @@ import re
 import sys
 import requests
 import shared as config
-from uploader import Device42
+from rest import Device42_rest
 from xml.sax import saxutils as su
 from BeautifulSoup import BeautifulSoup as BS
 
@@ -89,7 +89,7 @@ def main():
         print '[!] Error in config file. IBM URL must start with HTTPS.\n\tExiting...'
         sys.exit()
     # init
-    d42 = Device42(d42_username, d42_password, d42_url, debug, retry)
+    d42 = Device42_rest(d42_username, d42_password, d42_url, debug, retry)
 
     # get data from Device42
     orders = d42.get_purchases()
