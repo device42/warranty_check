@@ -101,7 +101,7 @@ class Dell:
                         data.update({'completed': 'yes'})
 
                         data.update({'vendor': 'Dell'})
-                        data.update({'line_device_serial_nos': inline_serials})
+                        data.update({'line_device_serial_nos': serial})
                         data.update({'line_type': 'contract'})
                         data.update({'line_item_type': 'device'})
                         data.update({'line_completed': 'yes'})
