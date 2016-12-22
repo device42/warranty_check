@@ -24,12 +24,11 @@ class Dell:
         if self.order_no == 'common':
             self.common = self.generate_random_order_no()
 
-    def run_warranty_check(self, sku, retry=False):
+    def run_warranty_check(self, inline_serials, retry=False):
         if self.debug:
-            print '\t[+] Checking warranty info for Dell "%s"' % sku
-        service_tag = sku
+            print '\t[+] Checking warranty info for Dell "%s"' % inline_serials
         timeout = 10
-        payload = {'id': service_tag, 'apikey': self.api_key, 'accept': 'Application/json'}
+        payload = {'id': inline_serials, 'apikey': self.api_key, 'accept': 'Application/json'}
 
         try:
             resp = requests.get(self.url, params=payload, verify=True, timeout=timeout)
@@ -41,7 +40,7 @@ class Dell:
                 time.sleep(30)
                 if not retry:
                     print '\n[!] Retry'
-                    self.run_warranty_check(sku, True)
+                    self.run_warranty_check(inline_serials, True)
                 else:
                     return None
             else:
@@ -52,106 +51,110 @@ class Dell:
             print '\n[!] HTTP error. Message was: %s' % msg
             return None
 
-    def process_result(self, result, service_tag, purchases):
+    def process_result(self, result, inline_serials, purchases):
         data = {}
 
-        try:
-            warranties = result['AssetWarrantyResponse'][0]['AssetEntitlementData']
-            asset = result['AssetWarrantyResponse'][0]['AssetHeaderData']
-            product = result['AssetWarrantyResponse'][0]['ProductHeaderData']
-        except IndexError:
-            if self.debug:
+        if 'AssetWarrantyResponse' in result:
+            for item in result['AssetWarrantyResponse']:
                 try:
-                    msg = result['InvalidFormatAssets']['BadAssets']
-                    if msg:
-                        print '\t\t[-] Error: Bad asset: %s' % service_tag
-                except Exception as e:
-                    print e
+                    warranties = item['AssetEntitlementData']
+                    asset = item['AssetHeaderData']
+                    product = item['ProductHeaderData']
+                except IndexError:
+                    if self.debug:
+                        try:
+                            msg = str(result['InvalidFormatAssets']['BadAssets'])
+                            if msg:
+                                print '\t\t[-] Error: Bad asset: %s' % msg
+                        except Exception as e:
+                            print e
 
-        else:
-            if self.order_no == 'vendor':
-                order_no = asset['OrderNumber']
-            elif self.order_no == 'common':
-                order_no = self.common
-            else:
-                order_no = self.generate_random_order_no()
-
-            serial = service_tag
-
-            '''
-            For future implementation of registering the purchase date as a lifecycle event
-            Add a lifecycle event for the system
-            data.update({'date':ship_date})
-            data.update({'type':'Purchased'})
-            data.update({'serial_no':serial})
-            d42.upload_lifecycle(data)
-            data.clear()
-            '''
-
-            # We need check per warranty service item
-            for item in warranties:
-                data.clear()
-                ship_date = asset['ShipDate'].split('T')[0]
-                product_id = product['ProductId']
-
-                data.update({'order_no': order_no})
-                if ship_date:
-                    data.update({'po_date': ship_date})
-                data.update({'completed': 'yes'})
-
-                data.update({'vendor': 'Dell'})
-                data.update({'line_device_serial_nos': service_tag})
-                data.update({'line_type': 'contract'})
-                data.update({'line_item_type': 'device'})
-                data.update({'line_completed': 'yes'})
-
-                line_contract_id = item['ItemNumber']
-                data.update({'line_notes': line_contract_id})
-                data.update({'line_contract_id': line_contract_id})
-
-                # Using notes as well as the Device42 API doesn't give back the line_contract_id,
-                # so notes is now used for identification
-                # Mention this to device42
-
-                service_level_group = item['ServiceLevelGroup']
-                if service_level_group == -1 or service_level_group == 5 or service_level_group == 8:
-                    contract_type = 'Warranty'
-                elif service_level_group == 8 and 'compellent' in product_id:
-                    contract_type = 'Service'
-                elif service_level_group == 11 and 'compellent' in product_id:
-                    contract_type = 'Warranty'
                 else:
-                    contract_type = 'Service'
-                data.update({'line_contract_type': contract_type})
-                if contract_type == 'Service':
-                    # Skipping the services, only want the warranties
-                    continue
+                    if self.order_no == 'vendor':
+                        order_no = asset['OrderNumber']
+                    elif self.order_no == 'common':
+                        order_no = self.common
+                    else:
+                        order_no = self.generate_random_order_no()
 
-                try:
-                    # There's a max 32 character limit on the line service type field in Device42 (version 10.2.1)
-                    service_level_description = left(item['ServiceLevelDescription'], 32)
-                    data.update({'line_service_type': service_level_description})
-                except:
-                    pass
+                    serial = asset['ServiceTag']
 
-                start_date = item['StartDate'].split('T')[0]
-                end_date = item['EndDate'].split('T')[0]
-
-                data.update({'line_start_date': start_date})
-                data.update({'line_end_date': end_date})
-
-                # update or duplicate? Compare warranty dates by serial, contract_id and end date
-                hasher = serial + line_contract_id + end_date
-                try:
-                    d_start, d_end = purchases[hasher]
-                    # check for duplicate state
-                    if d_start == start_date and d_end == end_date:
-                        print '\t[!] Duplicate found. Purchase ' \
-                              'for SKU "%s" and "%s" with end date "%s" ' \
-                              'is already uploaded' % (serial, line_contract_id, end_date)
-                except KeyError:
-                    self.d42_rest.upload_data(data)
+                    '''
+                    For future implementation of registering the purchase date as a lifecycle event
+                    Add a lifecycle event for the system
+                    data.update({'date':ship_date})
+                    data.update({'type':'Purchased'})
+                    data.update({'serial_no':serial})
+                    d42.upload_lifecycle(data)
                     data.clear()
+                    '''
+
+                    # We need check per warranty service item
+                    for sub_item in warranties:
+                        data.clear()
+                        ship_date = asset['ShipDate'].split('T')[0]
+                        product_id = product['ProductId']
+
+                        data.update({'order_no': order_no})
+                        if ship_date:
+                            data.update({'po_date': ship_date})
+                        data.update({'completed': 'yes'})
+
+                        data.update({'vendor': 'Dell'})
+                        data.update({'line_device_serial_nos': inline_serials})
+                        data.update({'line_type': 'contract'})
+                        data.update({'line_item_type': 'device'})
+                        data.update({'line_completed': 'yes'})
+
+                        line_contract_id = sub_item['ItemNumber']
+                        data.update({'line_notes': line_contract_id})
+                        data.update({'line_contract_id': line_contract_id})
+
+                        # Using notes as well as the Device42 API doesn't give back the line_contract_id,
+                        # so notes is now used for identification
+                        # Mention this to device42
+
+                        service_level_group = sub_item['ServiceLevelGroup']
+                        if service_level_group == -1 or service_level_group == 5 or service_level_group == 8:
+                            contract_type = 'Warranty'
+                        elif service_level_group == 8 and 'compellent' in product_id:
+                            contract_type = 'Service'
+                        elif service_level_group == 11 and 'compellent' in product_id:
+                            contract_type = 'Warranty'
+                        else:
+                            contract_type = 'Service'
+                        data.update({'line_contract_type': contract_type})
+                        if contract_type == 'Service':
+                            # Skipping the services, only want the warranties
+                            continue
+
+                        try:
+                            # There's a max 32 character limit
+                            # on the line service type field in Device42 (version 10.2.1)
+                            service_level_description = left(sub_item['ServiceLevelDescription'], 32)
+                            data.update({'line_service_type': service_level_description})
+                        except:
+                            pass
+
+                        start_date = sub_item['StartDate'].split('T')[0]
+                        end_date = sub_item['EndDate'].split('T')[0]
+
+                        data.update({'line_start_date': start_date})
+                        data.update({'line_end_date': end_date})
+
+                        # update or duplicate? Compare warranty dates by serial, contract_id and end date
+                        hasher = serial + line_contract_id + end_date
+
+                        try:
+                            d_start, d_end = purchases[hasher]
+                            # check for duplicate state
+                            if d_start == start_date and d_end == end_date:
+                                print '\t[!] Duplicate found. Purchase ' \
+                                      'for SKU "%s" and "%s" with end date "%s" ' \
+                                      'is already uploaded' % (serial, line_contract_id, end_date)
+                        except KeyError:
+                            self.d42_rest.upload_data(data)
+                            data.clear()
 
     @staticmethod
     def generate_random_order_no():

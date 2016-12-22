@@ -40,6 +40,7 @@ def loader(vendor, cfg, d42_rest):
 
     # Locate the devices involved, based on the hardware models found, add offset with recursion
     offset = 0
+    serials = []
     previous_batch = None
     while True:
         current_hardware_models = get_hardware_models(vendor)
@@ -57,18 +58,22 @@ def loader(vendor, cfg, d42_rest):
                      current_devices_batch['Devices'] if x['serial_no'] and x['manufacturer']]
             for item in items:
                 try:
-                    d42_id, serial, vendor = item
-                    print '[+] serial #: %s' % serial
+                    d42_id, d42_serial, d42_vendor = item
+                    print '[+] %s serial #: %s' % (vendor.title(), d42_serial)
                 except ValueError as e:
                     print '\n[!] Error in item: "%s", msg : "%s"' % (item, e)
                 else:
-                    if 'dell' in vendor.lower():
+                    if vendor in d42_vendor.lower():
                         # keep if statement in to prevent issues with vendors having choosen the same model names
                         # brief pause to let the API get a moment of rest and prevent 401 errors
                         time.sleep(1)
-                        result = vendor_api.run_warranty_check(serial)
-                        if result is not None:
-                            vendor_api.process_result(result, serial, purchases)
+                        serials.append(d42_serial)
+
+            inline_serials = ','.join(serials)
+            result = vendor_api.run_warranty_check(inline_serials)
+            if result is not None:
+                vendor_api.process_result(result, inline_serials, purchases)
+
             offset += 100
         else:
             print '\n[!] Finished'

@@ -22,7 +22,6 @@ In order for this script to check warranty status of the device, the device must
 - Making a remark if the session for the api call is unauthorized (http code 401)
 
 ## Plans
-- Move from individual api calls per serial to requesting warranty information for a list of systems at once, therefore reducing the amount of api calls towards the manufacturer
 - Include life_cycle event to register the purchase date. Unfortunately it can’t can done now, as I can’t easily compare purchases with the information found at dell. The life_cycle event doesn’t give back the serial, only the devicename. It would be nice if the serial_no could be added to the output of GET /api/1.0/lifecycle_event/
 
 ## Gotchas
