@@ -24,7 +24,7 @@ class Dell:
         if self.order_no == 'common':
             self.common = self.generate_random_order_no()
 
-    def run_warranty_check(self, inline_serials, retry=False):
+    def run_warranty_check(self, inline_serials, retry=True):
         if self.debug:
             print '\t[+] Checking warranty info for Dell "%s"' % inline_serials
         timeout = 10
@@ -38,9 +38,9 @@ class Dell:
                 print '\t[!] waiting for 30 seconds to let the api server calm down :D'
                 # suspecting blockage due to to many api calls. Put in a pause of 30 seconds and go on
                 time.sleep(30)
-                if not retry:
+                if retry:
                     print '\n[!] Retry'
-                    self.run_warranty_check(inline_serials, True)
+                    self.run_warranty_check(inline_serials, False)
                 else:
                     return None
             else:
@@ -51,7 +51,7 @@ class Dell:
             print '\n[!] HTTP error. Message was: %s' % msg
             return None
 
-    def process_result(self, result, inline_serials, purchases):
+    def process_result(self, result, purchases):
         data = {}
 
         if 'AssetWarrantyResponse' in result:
@@ -100,7 +100,7 @@ class Dell:
                             data.update({'po_date': ship_date})
                         data.update({'completed': 'yes'})
 
-                        data.update({'vendor': 'Dell'})
+                        data.update({'vendor': 'Dell Inc.'})
                         data.update({'line_device_serial_nos': serial})
                         data.update({'line_type': 'contract'})
                         data.update({'line_item_type': 'device'})
