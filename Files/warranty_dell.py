@@ -24,6 +24,10 @@ class Dell:
         if self.order_no == 'common':
             self.common = self.generate_random_order_no()
 
+    @staticmethod
+    def error_msg(msg):
+        print '\n[!] HTTP error. Message was: %s' % str(msg)
+
     def run_warranty_check(self, inline_serials, retry=True):
         if self.debug:
             print '\t[+] Checking warranty info for Dell "%s"' % inline_serials
@@ -47,8 +51,7 @@ class Dell:
                 result = resp.json()
                 return result
         except requests.RequestException as e:
-            msg = str(e)
-            print '\n[!] HTTP error. Message was: %s' % msg
+            self.error_msg(e)
             return None
 
     def process_result(self, result, purchases):
