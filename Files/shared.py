@@ -35,7 +35,7 @@ class Config:
             res = self.__get_dell_cfg()
         elif source == 'ibm':
             res = self.__get_ibm_cfg()
-        elif source == 'hp':
+        elif source == 'hewlett packard':
             res = self.__get_hp_cfg()
         else:
             print '\n[!] Error. Unknown source "%s".\n\tExiting...\n' % source
@@ -73,8 +73,12 @@ class Config:
     def __get_hp_cfg(self):
         # HP   ---------------------------------------------
         hp_url = self.cc.get('hp', 'url')
+        hp_api_key = self.cc.get('hp', 'api_key')
+        hp_api_secret = self.cc.get('hp', 'api_secret')
         return {
-            'url': hp_url
+            'url': hp_url,
+            'api_key': hp_api_key,
+            'api_secret': hp_api_secret
         }
 
 

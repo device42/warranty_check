@@ -4,10 +4,10 @@ import time
 
 from Files.shared import Config, Device42rest
 from Files.warranty_dell import Dell
+from Files.warranty_hp import Hp
 
 
-def get_hardware_models(vendor):
-
+def get_hardware_by_vendor(vendor):
     # Getting the hardware models, so we specifically target the manufacturer systems registered
     hardware_models = d42_rest.get_hardware_models()
     models = []
@@ -18,7 +18,6 @@ def get_hardware_models(vendor):
                 continue
 
             name = model.get('name')
-
             if name and name not in models:
                 models.append(name)
 
@@ -37,13 +36,21 @@ def loader(vendor, cfg, d42_rest):
         }
         vendor_api = Dell(dell_params)
 
+    elif vendor == 'hewlett packard':
+        hp_params = {
+            'url': current_cfg['url'],
+            'api_key': current_cfg['api_key'],
+            'api_secret': current_cfg['api_secret'],
+            'd42_rest': d42_rest
+        }
+        vendor_api = Hp(hp_params)
 
     # Locate the devices involved, based on the hardware models found, add offset with recursion
     offset = 0
     serials = []
     previous_batch = None
     while True:
-        current_hardware_models = get_hardware_models(vendor)
+        current_hardware_models = get_hardware_by_vendor(vendor)
         current_devices_batch = d42_rest.get_devices(offset, current_hardware_models)
 
         # If previous batch the same as current we finish
@@ -65,7 +72,7 @@ def loader(vendor, cfg, d42_rest):
                 else:
                     if vendor in d42_vendor.lower():
                         # keep if statement in to prevent issues with vendors having choosen the same model names
-                        # brief pause to let the API get a moment of rest and prevent 401 errors
+                        # brief pause to let the API get a moment of rest and prevent errors
                         time.sleep(1)
                         serials.append(d42_serial)
 
@@ -105,28 +112,17 @@ if __name__ == '__main__':
                     end = line_item.get('line_end_date')
                     start = line_item.get('line_start_date')
                     devices = line_item.get('devices')
-                    line_contract_id = line_item.get('line_notes')
 
                     if devices:
                         for device in devices:
                             if 'serial_no' in device:
                                 serial = device['serial_no']
-                                hasher = serial + line_contract_id + end
+                                hasher = serial + start + end
                                 if hasher not in purchases:
-                                    purchases[serial + line_contract_id + end] = [start, end]
+                                    purchases[serial + start + end] = [start, end]
 
-    '''
-    For future implementation of registering the purchase date as a lifecycle event
-    Can't be done now as life_cycle events give back the host name and not the serial_no.
-    Therefore hard to compare data
-    get life_cycle data from Device42
-    lifecyclepurchase = d42.get_lifecycle()
-    already_purchased = []
-
-    if lifecyclepurchase:
-       for purchase in lifecyclepurchase['lifecycle_events']:
-           device = purchase.get('device')
-    '''
-
+    print '\n[+] DELL section'
     loader('dell', cfg, d42_rest)
+    print '\n[+] HP section'
+    loader('hewlett packard', cfg, d42_rest)
     sys.exit()

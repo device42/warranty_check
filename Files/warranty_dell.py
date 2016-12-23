@@ -39,7 +39,7 @@ class Dell:
             msg = 'Status code: %s' % str(resp.status_code)
             if str(resp.status_code) == '401':
                 print '\t[!] HTTP error. Message was: %s' % msg
-                print '\t[!] waiting for 30 seconds to let the api server calm down :D'
+                print '\t[!] waiting for 30 seconds to let the api server calm down'
                 # suspecting blockage due to to many api calls. Put in a pause of 30 seconds and go on
                 time.sleep(30)
                 if retry:
@@ -146,7 +146,7 @@ class Dell:
                         data.update({'line_end_date': end_date})
 
                         # update or duplicate? Compare warranty dates by serial, contract_id and end date
-                        hasher = serial + line_contract_id + end_date
+                        hasher = serial + start_date + end_date
 
                         try:
                             d_start, d_end = purchases[hasher]
