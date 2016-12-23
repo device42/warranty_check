@@ -71,8 +71,9 @@ def loader(vendor, cfg, d42_rest):
 
             inline_serials = ','.join(serials)
             result = vendor_api.run_warranty_check(inline_serials)
+
             if result is not None:
-                vendor_api.process_result(result, inline_serials, purchases)
+                vendor_api.process_result(result, purchases)
 
             offset += 100
         else:
