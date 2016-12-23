@@ -5,7 +5,6 @@
 
 ## Intro
 This script checks warranty status for Dell and HP manufactured devices stored in Device42.
-Note: Currently works only for Dell
 
 ## Prerequisites
 In order for this script to check warranty status of the device, the device must have hardware model and serial number entered in Device42. Dell Warranty Status API key must be acquired as well.
