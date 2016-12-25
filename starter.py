@@ -5,28 +5,32 @@ import time
 from Files.shared import Config, Device42rest
 from Files.warranty_dell import Dell
 from Files.warranty_hp import Hp
+from Files.warranty_ibm_lenovo import IbmLenovo
+
+APPS_ROW = ['ibm']
 
 
-def get_hardware_by_vendor(vendor):
+def get_hardware_by_vendor(name):
     # Getting the hardware models, so we specifically target the manufacturer systems registered
     hardware_models = d42_rest.get_hardware_models()
     models = []
     if hardware_models:
         for model in hardware_models['models']:
             manufacturer = model.get('manufacturer')
-            if manufacturer and vendor not in manufacturer.lower():
+            if manufacturer and name not in manufacturer.lower():
                 continue
 
-            name = model.get('name')
-            if name and name not in models:
-                models.append(name)
+            model_name = model.get('name')
+            if model_name and model_name not in models:
+                models.append(model_name)
 
     return ','.join(models)
 
 
-def loader(vendor, cfg, d42_rest):
+def get_vendor_api(name):
 
-    current_cfg = cfg.get_config(vendor)
+    current_cfg = cfg.get_config(name)
+    api = None
 
     if vendor == 'dell':
         dell_params = {
@@ -34,7 +38,7 @@ def loader(vendor, cfg, d42_rest):
             'api_key': current_cfg['api_key'],
             'd42_rest': d42_rest
         }
-        vendor_api = Dell(dell_params)
+        api = Dell(dell_params)
 
     elif vendor == 'hewlett packard':
         hp_params = {
@@ -43,15 +47,28 @@ def loader(vendor, cfg, d42_rest):
             'api_secret': current_cfg['api_secret'],
             'd42_rest': d42_rest
         }
-        vendor_api = Hp(hp_params)
+        api = Hp(hp_params)
+
+    elif vendor == 'ibm' or vendor == 'lenovo':
+        ibm_lenovo_params = {
+            'url': current_cfg['url'],
+            'url2': current_cfg['url2'],
+            'd42_rest': d42_rest
+        }
+        api = IbmLenovo(vendor, ibm_lenovo_params)
+
+    return api
+
+
+def loader(name, api, d42):
 
     # Locate the devices involved, based on the hardware models found, add offset with recursion
     offset = 0
     serials = []
     previous_batch = None
     while True:
-        current_hardware_models = get_hardware_by_vendor(vendor)
-        current_devices_batch = d42_rest.get_devices(offset, current_hardware_models)
+        current_hardware_models = get_hardware_by_vendor(name)
+        current_devices_batch = d42.get_devices(offset, current_hardware_models)
 
         # If previous batch the same as current we finish
         if previous_batch is not None:
@@ -66,11 +83,11 @@ def loader(vendor, cfg, d42_rest):
             for item in items:
                 try:
                     d42_id, d42_serial, d42_vendor = item
-                    print '[+] %s serial #: %s' % (vendor.title(), d42_serial)
+                    print '[+] %s serial #: %s' % (name.title(), d42_serial)
                 except ValueError as e:
                     print '\n[!] Error in item: "%s", msg : "%s"' % (item, e)
                 else:
-                    if vendor in d42_vendor.lower():
+                    if name in d42_vendor.lower():
                         # keep if statement in to prevent issues with vendors having choosen the same model names
                         # brief pause to let the API get a moment of rest and prevent errors
                         time.sleep(1)
@@ -80,7 +97,7 @@ def loader(vendor, cfg, d42_rest):
             result = vendor_api.run_warranty_check(inline_serials)
 
             if result is not None:
-                vendor_api.process_result(result, purchases)
+                api.process_result(result, purchases)
 
             offset += 100
         else:
@@ -121,8 +138,9 @@ if __name__ == '__main__':
                                 if hasher not in purchases:
                                     purchases[serial + start + end] = [start, end]
 
-    print '\n[+] DELL section'
-    loader('dell', cfg, d42_rest)
-    print '\n[+] HP section'
-    loader('hewlett packard', cfg, d42_rest)
+    for vendor in APPS_ROW:
+        print '\n[+] %s section' % vendor
+        vendor_api = get_vendor_api(vendor)
+        loader(vendor, vendor_api, d42_rest)
+
     sys.exit()

@@ -4,7 +4,8 @@ import time
 import random
 import requests
 
-from shared import DEBUG, RETRY, ORDER_NO_TYPE
+from shared import DEBUG, RETRY, ORDER_NO_TYPE, left
+from warranty_abstract import WarrantyBase
 
 try:
     requests.packages.urllib3.disable_warnings()
@@ -12,8 +13,9 @@ except:
     pass
 
 
-class Hp:
+class Hp(WarrantyBase, object):
     def __init__(self, params):
+        super(Hp, self).__init__()
         self.url = params['url']
         self.api_key = params['api_key']
         self.api_secret = params['api_secret']
@@ -27,10 +29,6 @@ class Hp:
             self.common = self.generate_random_order_no()
 
         self.access_key = self.get_access_key()
-
-    @staticmethod
-    def error_msg(msg):
-        print '\n[!] HTTP error. Message was: %s' % str(msg)
 
     def get_access_key(self):
         if self.debug:
@@ -60,7 +58,7 @@ class Hp:
 
     def prepare_job(self, inline_serials, retry=True):
         if self.debug:
-            print '\t[+] Prepare HP API Job for "%s"' % inline_serials
+            print '\t[+] Prepare API Job for "%s"' % inline_serials
 
         timeout = 5
         payload = [{'sn': x} for x in inline_serials.split(',')]
@@ -89,7 +87,7 @@ class Hp:
         except requests.RequestException as e:
             if retry:
                 # waiting for result
-                print '\t[+] HP API issue, trying again'
+                print '\t[+] API issue, trying again'
                 time.sleep(5)
                 print '\t[!] Retry'
                 self.prepare_job(inline_serials, False)
@@ -98,12 +96,12 @@ class Hp:
                 return None
 
             self.error_msg(e)
-            print '\t[!] HP API in beta and unstable version, please try again later'
+            print '\t[!] API in beta and unstable version, please try again later'
             sys.exit()
 
     def check_job(self, job, retry=True):
         if self.debug:
-            print '\t[+] Checking HP API Job "%s"' % job['jobId']
+            print '\t[+] Checking API Job "%s"' % job['jobId']
 
         timeout = 30
         headers = {
@@ -134,7 +132,7 @@ class Hp:
 
     def run_warranty_check(self, inline_serials, retry=True):
         if self.debug:
-            print '\t[+] Checking warranty info for HP "%s"' % inline_serials
+            print '\t[+] Checking warranty info for "%s"' % inline_serials
         timeout = 10
         headers = {
             'Authorization': 'Bearer %s' % self.access_key,
@@ -221,22 +219,3 @@ class Hp:
             except KeyError:
                 self.d42_rest.upload_data(data)
                 data.clear()
-
-    @staticmethod
-    def generate_random_order_no():
-        order_no = ''
-        for index in range(9):
-            order_no += str(random.randint(0, 9))
-        return order_no
-
-
-def dates_are_the_same(dstart, dend, wstart, wend):
-    if time.strptime(dstart, "%Y-%m-%d") == time.strptime(wstart, "%Y-%m-%d") and \
-                    time.strptime(dend, "%Y-%m-%d") == time.strptime(wend, "%Y-%m-%d"):
-        return True
-    else:
-        return False
-
-
-def left(s, amount):
-    return s[:amount]

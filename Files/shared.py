@@ -1,6 +1,7 @@
 import os
 import sys
 import base64
+import time
 import requests
 import ConfigParser
 
@@ -33,10 +34,14 @@ class Config:
             res = self.get_d42_cfg()
         elif source == 'dell':
             res = self.__get_dell_cfg()
-        elif source == 'ibm':
-            res = self.__get_ibm_cfg()
         elif source == 'hewlett packard':
             res = self.__get_hp_cfg()
+        elif source == 'cisco':
+            res = self.__get_cisco_cfg()
+        elif source == 'ibm':
+            res = self.__get_ibm_cfg()
+        elif source == 'lenovo':
+            res = self.__get_lenovo_cfg()
         else:
             print '\n[!] Error. Unknown source "%s".\n\tExiting...\n' % source
             sys.exit()
@@ -63,13 +68,6 @@ class Config:
             'api_key': dell_api_key
         }
 
-    def __get_ibm_cfg(self):
-        # IBM  ---------------------------------------------
-        ibm_url = self.cc.get('ibm', 'url')
-        return {
-            'url': ibm_url
-        }
-
     def __get_hp_cfg(self):
         # HP   ---------------------------------------------
         hp_url = self.cc.get('hp', 'url')
@@ -79,6 +77,35 @@ class Config:
             'url': hp_url,
             'api_key': hp_api_key,
             'api_secret': hp_api_secret
+        }
+
+    def __get_cisco_cfg(self):
+        # Cisco --------------------------------------------
+        cisco_url = self.cc.get('cisco', 'url')
+        cisco_api_key = self.cc.get('cisco', 'api_key')
+        cisco_api_secret = self.cc.get('cisco', 'api_secret')
+        return {
+            'url': cisco_url,
+            'api_key': cisco_api_key,
+            'api_secret': cisco_api_secret
+        }
+
+    def __get_ibm_cfg(self):
+        # IBM  ---------------------------------------------
+        ibm_url = self.cc.get('ibm', 'url')
+        ibm_url2 = self.cc.get('ibm', 'url2')
+        return {
+            'url': ibm_url,
+            'url2': ibm_url2
+        }
+
+    def __get_lenovo_cfg(self):
+        # lenovo -------------------------------------------
+        lenovo_url = self.cc.get('lenovo', 'url')
+        lenovo_url2 = self.cc.get('lenovo', 'url2')
+        return {
+            'url': lenovo_url,
+            'url2': lenovo_url2
         }
 
 
@@ -161,3 +188,15 @@ class Device42rest:
         api_path = '/api/1.0/hardwares/'
         response = self.get_data(api_path)
         return response
+
+
+def dates_are_the_same(dstart, dend, wstart, wend):
+    if time.strptime(dstart, "%Y-%m-%d") == time.strptime(wstart, "%Y-%m-%d") and \
+                    time.strptime(dend, "%Y-%m-%d") == time.strptime(wend, "%Y-%m-%d"):
+        return True
+    else:
+        return False
+
+
+def left(s, amount):
+    return s[:amount]

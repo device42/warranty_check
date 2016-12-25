@@ -3,7 +3,8 @@ import time
 import random
 import requests
 
-from shared import DEBUG, RETRY, ORDER_NO_TYPE
+from shared import DEBUG, RETRY, ORDER_NO_TYPE, left
+from warranty_abstract import WarrantyBase
 
 try:
     requests.packages.urllib3.disable_warnings()
@@ -11,8 +12,9 @@ except:
     pass
 
 
-class Dell:
+class Dell(WarrantyBase, object):
     def __init__(self, params):
+        super(Dell, self).__init__()
         self.url = params['url']
         self.api_key = params['api_key']
         self.debug = DEBUG
@@ -24,13 +26,9 @@ class Dell:
         if self.order_no == 'common':
             self.common = self.generate_random_order_no()
 
-    @staticmethod
-    def error_msg(msg):
-        print '\n[!] HTTP error. Message was: %s' % str(msg)
-
     def run_warranty_check(self, inline_serials, retry=True):
         if self.debug:
-            print '\t[+] Checking warranty info for Dell "%s"' % inline_serials
+            print '\t[+] Checking warranty info for "%s"' % inline_serials
         timeout = 10
         payload = {'id': inline_serials, 'apikey': self.api_key, 'accept': 'Application/json'}
 
@@ -158,22 +156,3 @@ class Dell:
                         except KeyError:
                             self.d42_rest.upload_data(data)
                             data.clear()
-
-    @staticmethod
-    def generate_random_order_no():
-        order_no = ''
-        for index in range(9):
-            order_no += str(random.randint(0, 9))
-        return order_no
-
-
-def dates_are_the_same(dstart, dend, wstart, wend):
-    if time.strptime(dstart, "%Y-%m-%d") == time.strptime(wstart, "%Y-%m-%d") and \
-                    time.strptime(dend, "%Y-%m-%d") == time.strptime(wend, "%Y-%m-%d"):
-        return True
-    else:
-        return False
-
-
-def left(s, amount):
-    return s[:amount]
