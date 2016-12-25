@@ -104,10 +104,12 @@ class IbmLenovo(WarrantyBase, object):
 
             data.update({'order_no': order_no})
             data.update({'completed': 'yes'})
+
             if self.vendor == 'ibm':
                 data.update({'vendor': 'IBM'})
             else:
                 data.update({'vendor': 'LENOVO'})
+
             data.update({'line_device_serial_nos': serial})
             data.update({'line_type': 'contract'})
             data.update({'line_item_type': 'device'})
