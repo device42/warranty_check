@@ -4,7 +4,7 @@
 [Device42](http://www.device42.com) is a comprehensive data center inventory management and IP Address management software that integrates centralized password management, impact charts and applications mappings with IT asset management.
 
 ## Intro
-This script checks warranty status for Dell and HP manufactured devices stored in Device42.
+This script checks warranty status for Dell, HP, IBM and Lenovo manufactured devices stored in Device42.
 
 ## Prerequisites
 In order for this script to check warranty status of the device, the device must have hardware model and serial number entered in Device42. Dell Warranty Status API key must be acquired as well.
@@ -21,7 +21,6 @@ In order for this script to check warranty status of the device, the device must
 - Making a remark if the session for the api call is unauthorized (http code 401)
 
 ## Plans
-- Refactor code to reduce amount of calls to get new hardware batches from D42 API
 - Include life_cycle event to register the purchase date. Unfortunately it can’t can done now, as I can’t easily compare purchases with the information found at dell. The life_cycle event doesn’t give back the serial, only the devicename. It would be nice if the serial_no could be added to the output of GET /api/1.0/lifecycle_event/
 
 ## Gotchas

@@ -6,27 +6,22 @@ url =
 
 [dell]
 # set api_key as provided by Dell
-api_key = a980a9180aa6422800000000c65fa08c
+api_key =
 url = https://sandbox.api.dell.com/support/assetinfo/v4/getassetwarranty
 
 [hp]
 # set api_key as provided by HP
-api_key = NZuAdeMMKhzxa0caeRsRu8eLuBCRQL3i
-api_secret = f0ODMMOA8oWj92dp
+api_key =
+api_secret =
 url = https://css.api.hp.com
 
 [ibm]
-url = http://support.lenovo.com/services/ru/en/ContentService/GetProducts
-url2 = http://support.lenovo.com/ru/en/products
+url = http://support.lenovo.com/services/us/en/ContentService/GetProducts
+url2 = http://support.lenovo.com/us/en/products
 
 [lenovo]
-url = http://support.lenovo.com/services/en/en/ContentService/GetProducts
-url2 = http://support.lenovo.com/en/en/products
-
-[cisco]
-api_key = rwsfg7zxyzpnr3f4j3mdz4wb
-api_secret = 4zYp5NFSYN33w97b4rztPAu7
-url = https://api.cisco.com/product/v1.0
+url = http://support.lenovo.com/services/us/en/ContentService/GetProducts
+url2 = http://support.lenovo.com/us/en/products
 
 [other]
 # print verbose info to STDOUT
