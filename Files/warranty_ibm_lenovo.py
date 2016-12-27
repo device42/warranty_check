@@ -2,6 +2,7 @@ import sys
 import re
 import time
 import json
+import copy
 import random
 import requests
 
@@ -60,14 +61,16 @@ class IbmLenovo(WarrantyBase, object):
         result = []
 
         for serial in inline_serials.split(','):
-            possible_products = self.get_product_info(serial)
-
+            product_info = self.get_product_info(serial)
             current_product = None
 
-            for product in possible_products:
-                current_product = self.get_product_info(product['Name'])[0]
-                if current_product['Name'] is not None:
-                    break
+            if len(product_info) > 1:
+                for product in product_info:
+                    current_product = self.get_product_info(product['Name'])[0]
+                    if current_product['Name'] is not None:
+                        break
+            else:
+                current_product = product_info[0]
 
             if current_product is not None:
 
@@ -115,7 +118,10 @@ class IbmLenovo(WarrantyBase, object):
             data.update({'line_item_type': 'device'})
             data.update({'line_completed': 'yes'})
 
+            lines = []
+
             for warranty in warranties:
+
                 start_date = warranty['Start']['UTC'].split('T')[0]
                 end_date = warranty['End']['UTC'].split('T')[0]
 
@@ -142,5 +148,8 @@ class IbmLenovo(WarrantyBase, object):
                               'for SKU "%s" with end date "%s" ' \
                               'is already uploaded' % (serial, end_date)
                 except KeyError:
-                    self.d42_rest.upload_data(data)
-                    data.clear()
+                    lines.append(copy.deepcopy(data))
+
+            for line in lines:
+                self.d42_rest.upload_data(line)
+            data.clear()
