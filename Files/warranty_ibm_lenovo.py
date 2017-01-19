@@ -70,7 +70,11 @@ class IbmLenovo(WarrantyBase, object):
                     if current_product['Name'] is not None:
                         break
             else:
-                current_product = product_info[0]
+                try:
+                    current_product = product_info[0]
+                except IndexError:
+                    print '\t[+] Unable to find "%s" orders' % serial
+                    continue
 
             if current_product is not None:
 
