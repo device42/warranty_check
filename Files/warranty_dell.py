@@ -116,7 +116,10 @@ class Dell(WarrantyBase, object):
                     for sub_item in warranties:
                         data.clear()
                         ship_date = asset['ShipDate'].split('T')[0]
-                        product_id = product['ProductId']
+                        try:
+                            product_id = product['ProductId']
+                        except:
+                            product_id = 'notspecified'
 
                         data.update({'order_no': order_no})
                         if ship_date:
