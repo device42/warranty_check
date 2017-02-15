@@ -87,8 +87,8 @@ def loader(name, api, d42):
                         print '[+] %s serial #: %s' % (name.title(), d42_serial)
                         # keep if statement in to prevent issues with vendors having choosen the same model names
                         # brief pause to let the API get a moment of rest and prevent errors
-                        time.sleep(1)
-                        serials.append(d42_serial)
+                        #time.sleep(1)
+                        serials.append(d42_serial.upper())
                 except ValueError as e:
                     print '\n[!] Error in item: "%s", msg : "%s"' % (item, e)
 
