@@ -64,9 +64,9 @@ def loader(name, api, d42):
 
     # Locate the devices involved, based on the hardware models found, add offset with recursion
     offset = 0
-    serials = []
     previous_batch = None
     while True:
+        serials = []
         current_hardware_models = get_hardware_by_vendor(name)
         current_devices_batch = d42.get_devices(offset, current_hardware_models)
 
