@@ -52,7 +52,7 @@ class Dell(WarrantyBase, object):
         inline_serials = ','.join(inline_serials)
 
         payload = {'id': inline_serials, 'apikey': self.api_key, 'accept': 'Application/json'}
-
+        
         try:
             resp = requests.get(self.url, params=payload, verify=True, timeout=timeout)
             msg = 'Status code: %s' % str(resp.status_code)
@@ -141,7 +141,7 @@ class Dell(WarrantyBase, object):
                         # Mention this to device42
 
                         service_level_group = sub_item['ServiceLevelGroup']
-                        if service_level_group == -1 or service_level_group == 5 or service_level_group == 8:
+                        if service_level_group == -1 or service_level_group == 5 or service_level_group == 8 or service_level_group == 99999:
                             contract_type = 'Warranty'
                         elif service_level_group == 8 and 'compellent' in product_id:
                             contract_type = 'Service'

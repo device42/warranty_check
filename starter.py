@@ -100,7 +100,7 @@ def loader(name, api, d42):
                 if result is not None:
                     api.process_result(result, purchases)
 
-            offset += 100
+            offset += 50
         else:
             print '\n[!] Finished'
             break
