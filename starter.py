@@ -85,10 +85,7 @@ def loader(name, api, d42):
                     d42_id, d42_serial, d42_vendor = item
                     if name in d42_vendor.lower():
                         print '[+] %s serial #: %s' % (name.title(), d42_serial)
-                        # keep if statement in to prevent issues with vendors having choosen the same model names
-                        # brief pause to let the API get a moment of rest and prevent errors
-                        #time.sleep(1)
-                        serials.append(d42_serial.upper())
+                        serials.append(d42_serial)
                 except ValueError as e:
                     print '\n[!] Error in item: "%s", msg : "%s"' % (item, e)
 
