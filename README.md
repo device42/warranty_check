@@ -13,6 +13,11 @@ In order for this script to check warranty status of the device, the device must
 - Dell's API key can be obtained by filling the on-boarding form. Please, follow the instructions from this ppt file: http://en.community.dell.com/dell-groups/supportapisgroup/m/mediagallery/20428185
 - HP's API key can be obtained by filling the on-boarding form. Please, follow the instructions from here: https://developers.hp.com/css-enroll
 
+## New Changes
+- Added section to also update systems which have had their serials numbers changed due to a life_cycle event.
+- Using offset per 50 requests instead of 100. The Dell API seems to limit response to 80 serials. For every 100 requests no info came back for the last 20 serials.
+- Added a service_level_group for dell equipment as that also has warranty contracts
+
 ## Changes
 - Moved from just showing last date to showing all warranties and services found in the api call
 - Comparison on existence of registration per purchase/support info (per line on the order) based on serial, line contract id and contract end date

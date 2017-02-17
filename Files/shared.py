@@ -163,7 +163,7 @@ class Device42rest:
         if DEBUG:
             print '\n[!] Fetching devices from Device42 with offset=' + str(offset)
         api_path = '/api/1.0/devices/all/'
-        cols = '?include_cols=serial_no,device_id,manufacturer&limit=100&offset=' + str(offset) + '&hardware=' + models
+        cols = '?include_cols=serial_no,device_id,manufacturer&limit=50&offset=' + str(offset) + '&hardware=' + models
         path = api_path + cols
         response = self.get_data(path)
         return response

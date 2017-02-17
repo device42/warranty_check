@@ -30,12 +30,33 @@ class Dell(WarrantyBase, object):
         if self.debug:
             print '\t[+] Checking warranty info for "%s"' % inline_serials
         timeout = 10
-        payload = {'id': inline_serials, 'apikey': self.api_key, 'accept': 'Application/json'}
 
+
+        # making sure the warranty also gets updated if the serial has been changed by decom lifecycle process
+        incoming_serials = inline_serials.split(',')
+        inline_serials = []
+
+        global fullserials
+        fullserials = {}
+        for d42_serial in incoming_serials:
+            if '_' in d42_serial:
+                fullserials.update({d42_serial.split('_')[0]:d42_serial})
+                d42_serial = d42_serial.split('_')[0]
+            elif '(' in d42_serial:
+                fullserials.update({d42_serial.split('(')[0]:d42_serial})
+                d42_serial = d42_serial.split('(')[0]
+            else:
+                fullserials.update({d42_serial:d42_serial})
+            inline_serials.append(d42_serial)
+            #print fullserials[d42_serial]
+        inline_serials = ','.join(inline_serials)
+
+        payload = {'id': inline_serials, 'apikey': self.api_key, 'accept': 'Application/json'}
+        
         try:
             resp = requests.get(self.url, params=payload, verify=True, timeout=timeout)
             msg = 'Status code: %s' % str(resp.status_code)
-            if str(resp.status_code) == '401':
+            if str(resp.status_code) == '401' or str(resp.status_code) == '404':
                 print '\t[!] HTTP error. Message was: %s' % msg
                 print '\t[!] waiting for 30 seconds to let the api server calm down'
                 # suspecting blockage due to to many api calls. Put in a pause of 30 seconds and go on
@@ -53,6 +74,7 @@ class Dell(WarrantyBase, object):
             return None
 
     def process_result(self, result, purchases):
+        global fullserials
         data = {}
 
         if 'AssetWarrantyResponse' in result:
@@ -94,7 +116,10 @@ class Dell(WarrantyBase, object):
                     for sub_item in warranties:
                         data.clear()
                         ship_date = asset['ShipDate'].split('T')[0]
-                        product_id = product['ProductId']
+                        try:
+                            product_id = product['ProductId']
+                        except:
+                            product_id = 'notspecified'
 
                         data.update({'order_no': order_no})
                         if ship_date:
@@ -102,7 +127,7 @@ class Dell(WarrantyBase, object):
                         data.update({'completed': 'yes'})
 
                         data.update({'vendor': 'Dell Inc.'})
-                        data.update({'line_device_serial_nos': serial})
+                        data.update({'line_device_serial_nos': fullserials[serial]})
                         data.update({'line_type': 'contract'})
                         data.update({'line_item_type': 'device'})
                         data.update({'line_completed': 'yes'})
@@ -116,7 +141,7 @@ class Dell(WarrantyBase, object):
                         # Mention this to device42
 
                         service_level_group = sub_item['ServiceLevelGroup']
-                        if service_level_group == -1 or service_level_group == 5 or service_level_group == 8:
+                        if service_level_group == -1 or service_level_group == 5 or service_level_group == 8 or service_level_group == 99999:
                             contract_type = 'Warranty'
                         elif service_level_group == 8 and 'compellent' in product_id:
                             contract_type = 'Service'
