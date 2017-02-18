@@ -128,7 +128,7 @@ if __name__ == '__main__':
                     start = line_item.get('line_start_date')
                     devices = line_item.get('devices')
 
-                    if devices:
+                    if start and end and devices:
                         for device in devices:
                             if 'serial_no' in device:
                                 serial = device['serial_no']
