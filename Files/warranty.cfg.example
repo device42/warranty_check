@@ -4,6 +4,13 @@ username =
 password =
 url =
 
+[discover]
+# enable/disable discoveries
+dell = True
+hp = True
+ibm = True
+lenovo = True
+
 [dell]
 # set api_key as provided by Dell
 api_key =

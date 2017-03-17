@@ -31,10 +31,12 @@ class Config:
     def get_config(self, source):
         # check params for licence issuer
         if source == 'd42':
-            res = self.get_d42_cfg()
+            res = self.__get_d42_cfg()
+        elif source == 'discover':
+            res = self.__get_discover_cfg()
         elif source == 'dell':
             res = self.__get_dell_cfg()
-        elif source == 'hewlett packard':
+        elif source == 'hp':
             res = self.__get_hp_cfg()
         elif source == 'cisco':
             res = self.__get_cisco_cfg()
@@ -48,7 +50,7 @@ class Config:
 
         return res
 
-    def get_d42_cfg(self):
+    def __get_d42_cfg(self):
         # Device42 -----------------------------------------
         d42_username = self.cc.get('device42', 'username')
         d42_password = self.cc.get('device42', 'password')
@@ -57,6 +59,19 @@ class Config:
             'username': d42_username,
             'password': d42_password,
             'url': d42_url
+        }
+
+    def __get_discover_cfg(self):
+        # Discover -----------------------------------------
+        dell = self.cc.getboolean('discover', 'dell')
+        hp = self.cc.getboolean('discover', 'hp')
+        ibm = self.cc.getboolean('discover', 'ibm')
+        lenovo = self.cc.getboolean('discover', 'lenovo')
+        return {
+            'dell': dell,
+            'hp': hp,
+            'ibm': ibm,
+            'lenovo': lenovo
         }
 
     def __get_dell_cfg(self):
