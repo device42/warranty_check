@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 import sys
-import time
 
 from Files.shared import Config, Device42rest
 from Files.warranty_dell import Dell
 from Files.warranty_hp import Hp
 from Files.warranty_ibm_lenovo import IbmLenovo
-
-APPS_ROW = ['dell', 'ibm', 'lenovo', 'hewlett packard']
 
 
 def get_hardware_by_vendor(name):
@@ -40,7 +37,7 @@ def get_vendor_api(name):
         }
         api = Dell(dell_params)
 
-    elif vendor == 'hewlett packard':
+    elif vendor == 'hp':
         hp_params = {
             'url': current_cfg['url'],
             'api_key': current_cfg['api_key'],
@@ -107,6 +104,7 @@ if __name__ == '__main__':
     # get settings from config file
     cfg = Config()
     d42_cfg = cfg.get_config('d42')
+    discover = cfg.get_config('discover')
 
     # init
     d42_params = {
@@ -135,6 +133,16 @@ if __name__ == '__main__':
                                 hasher = serial + start + end
                                 if hasher not in purchases:
                                     purchases[serial + start + end] = [start, end]
+
+    APPS_ROW = []
+    if discover['dell']:
+        APPS_ROW.append('dell')
+    if discover['hp']:
+        APPS_ROW.append('hp')
+    if discover['ibm']:
+        APPS_ROW.append('ibm')
+    if discover['lenovo']:
+        APPS_ROW.append('lenovo')
 
     for vendor in APPS_ROW:
         print '\n[+] %s section' % vendor
