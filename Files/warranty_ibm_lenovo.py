@@ -79,7 +79,7 @@ class IbmLenovo(WarrantyBase, object):
             if current_product is not None:
 
                 resp = self.requests.post(
-                    self.url2 + '/' + current_product['ParentID'] + '?tabName=Warranty&beta=false',
+                    self.url2 + '/' + current_product['Id'] + '?tabName=Warranty&beta=false',
                     data={'SERIALNUMBERKEY': current_product['Serial']},
                     verify=True,
                     timeout=timeout
