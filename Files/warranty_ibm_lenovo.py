@@ -86,8 +86,11 @@ class IbmLenovo(WarrantyBase, object):
                 )
 
                 data_object = re.search(r"ds_warranties=(.*?});", resp.text)
-                json_object = json.loads(data_object.group(1))
-                result.append(json_object)
+                try:
+                    json_object = json.loads(data_object.group(1))
+                    result.append(json_object)
+                except ValueError:
+                    continue
 
         return result
 
