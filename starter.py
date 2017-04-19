@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 import sys
-import time
 
 from Files.shared import Config, Device42rest
 from Files.warranty_dell import Dell
 from Files.warranty_hp import Hp
 from Files.warranty_ibm_lenovo import IbmLenovo
-
-APPS_ROW = ['dell', 'ibm', 'lenovo', 'hewlett packard']
 
 
 def get_hardware_by_vendor(name):
@@ -40,7 +37,7 @@ def get_vendor_api(name):
         }
         api = Dell(dell_params)
 
-    elif vendor == 'hewlett packard':
+    elif vendor == 'hp':
         hp_params = {
             'url': current_cfg['url'],
             'api_key': current_cfg['api_key'],
@@ -85,10 +82,7 @@ def loader(name, api, d42):
                     d42_id, d42_serial, d42_vendor = item
                     if name in d42_vendor.lower():
                         print '[+] %s serial #: %s' % (name.title(), d42_serial)
-                        # keep if statement in to prevent issues with vendors having choosen the same model names
-                        # brief pause to let the API get a moment of rest and prevent errors
-                        #time.sleep(1)
-                        serials.append(d42_serial.upper())
+                        serials.append(d42_serial)
                 except ValueError as e:
                     print '\n[!] Error in item: "%s", msg : "%s"' % (item, e)
 
@@ -110,6 +104,7 @@ if __name__ == '__main__':
     # get settings from config file
     cfg = Config()
     d42_cfg = cfg.get_config('d42')
+    discover = cfg.get_config('discover')
 
     # init
     d42_params = {
@@ -131,13 +126,23 @@ if __name__ == '__main__':
                     start = line_item.get('line_start_date')
                     devices = line_item.get('devices')
 
-                    if devices:
+                    if start and end and devices:
                         for device in devices:
                             if 'serial_no' in device:
                                 serial = device['serial_no']
                                 hasher = serial + start + end
                                 if hasher not in purchases:
                                     purchases[serial + start + end] = [start, end]
+
+    APPS_ROW = []
+    if discover['dell']:
+        APPS_ROW.append('dell')
+    if discover['hp']:
+        APPS_ROW.append('hp')
+    if discover['ibm']:
+        APPS_ROW.append('ibm')
+    if discover['lenovo']:
+        APPS_ROW.append('lenovo')
 
     for vendor in APPS_ROW:
         print '\n[+] %s section' % vendor

@@ -78,12 +78,23 @@ class IbmLenovo(WarrantyBase, object):
 
             if current_product is not None:
 
+                url = self.url2 + '/' + current_product['Id'] + '?tabName=Warranty&beta=false'
+
                 resp = self.requests.post(
-                    self.url2 + '/' + current_product['ParentID'] + '?tabName=Warranty&beta=false',
+                    url,
                     data={'SERIALNUMBERKEY': current_product['Serial']},
                     verify=True,
                     timeout=timeout
                 )
+
+                # possible redirects
+                if resp.url != url:
+                    resp = self.requests.post(
+                        resp.url,
+                        data={'SERIALNUMBERKEY': current_product['Serial']},
+                        verify=True,
+                        timeout=timeout
+                    )
 
                 data_object = re.search(r"ds_warranties=(.*?});", resp.text)
                 json_object = json.loads(data_object.group(1))

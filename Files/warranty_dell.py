@@ -27,6 +27,9 @@ class Dell(WarrantyBase, object):
             self.common = self.generate_random_order_no()
 
     def run_warranty_check(self, inline_serials, retry=True):
+        global full_serials
+        full_serials = {}
+
         if self.debug:
             print '\t[+] Checking warranty info for "%s"' % inline_serials
         timeout = 10
@@ -36,23 +39,21 @@ class Dell(WarrantyBase, object):
         incoming_serials = inline_serials.split(',')
         inline_serials = []
 
-        global fullserials
-        fullserials = {}
         for d42_serial in incoming_serials:
+            d42_serial = d42_serial.upper()
             if '_' in d42_serial:
-                fullserials.update({d42_serial.split('_')[0]:d42_serial})
+                full_serials.update({d42_serial.split('_')[0]: d42_serial})
                 d42_serial = d42_serial.split('_')[0]
             elif '(' in d42_serial:
-                fullserials.update({d42_serial.split('(')[0]:d42_serial})
+                full_serials.update({d42_serial.split('(')[0]: d42_serial})
                 d42_serial = d42_serial.split('(')[0]
             else:
-                fullserials.update({d42_serial:d42_serial})
+                full_serials.update({d42_serial: d42_serial})
             inline_serials.append(d42_serial)
-            #print fullserials[d42_serial]
         inline_serials = ','.join(inline_serials)
 
         payload = {'id': inline_serials, 'apikey': self.api_key, 'accept': 'Application/json'}
-        
+
         try:
             resp = requests.get(self.url, params=payload, verify=True, timeout=timeout)
             msg = 'Status code: %s' % str(resp.status_code)
@@ -74,7 +75,7 @@ class Dell(WarrantyBase, object):
             return None
 
     def process_result(self, result, purchases):
-        global fullserials
+        global full_serials
         data = {}
 
         if 'AssetWarrantyResponse' in result:
@@ -127,7 +128,7 @@ class Dell(WarrantyBase, object):
                         data.update({'completed': 'yes'})
 
                         data.update({'vendor': 'Dell Inc.'})
-                        data.update({'line_device_serial_nos': fullserials[serial]})
+                        data.update({'line_device_serial_nos': full_serials[serial]})
                         data.update({'line_type': 'contract'})
                         data.update({'line_item_type': 'device'})
                         data.update({'line_completed': 'yes'})
