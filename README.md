@@ -14,9 +14,9 @@ In order for this script to check warranty status of the device, the device must
 - HP's API key can be obtained by filling the on-boarding form. Please, follow the instructions from here: https://developers.hp.com/css-enroll
 
 ## New Changes
-- Added section to also update systems which have had their serials numbers changed due to a life_cycle event.
-- Using offset per 50 requests instead of 100. The Dell API seems to limit response to 80 serials. For every 100 requests no info came back for the last 20 serials.
-- Added a service_level_group for dell equipment as that also has warranty contracts
+- service type field has been extended in version 13.1.0.
+- Added an option to force updating the line items (currently only works for Dell). Needed as the Service Type does not get updated otherwise as the contents of the field can't be checked via the api to see if it needs a change.
+
 
 ## Changes
 - Moved from just showing last date to showing all warranties and services found in the api call
@@ -25,6 +25,9 @@ In order for this script to check warranty status of the device, the device must
 - Using offset per 100 requests instead of doing a full request of all devices
 - Brief pause per api call to prevent blockage at the api request site (1 second pause per api call)
 - Making a remark if the session for the api call is unauthorized (http code 401)
+- Added section to also update systems which have had their serials numbers changed due to a life_cycle event.
+- Using offset per 50 requests instead of 100. The Dell API seems to limit response to 80 serials. For every 100 requests no info came back for the last 20 serials.
+- Added a service_level_group for dell equipment as that also has warranty contracts
 
 ## Plans
 - Include life_cycle event to register the purchase date. Unfortunately it can’t can done now, as I can’t easily compare purchases with the information found at dell. The life_cycle event doesn’t give back the serial, only the devicename. It would be nice if the serial_no could be added to the output of GET /api/1.0/lifecycle_event/
@@ -32,6 +35,7 @@ In order for this script to check warranty status of the device, the device must
 ## Gotchas
 If either hardware model or serial # is missing, warranty status won't be checked for device.
 HP script unstable, may require retries.
+IBM script points to warranty info not related to the SKU, serial given
 
 ## Usage
 Set required parameters in warranty.cfg file and run warranty_dell.py script:
