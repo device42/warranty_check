@@ -117,22 +117,28 @@ if __name__ == '__main__':
     # get purchases data from Device42
     orders = d42_rest.get_purchases()
     purchases = {}
+    #forcedupdate = False
 
     if orders and 'purchases' in orders:
         for order in orders['purchases']:
             if 'line_items' in order:
-                for line_item in order['line_items']:
-                    end = line_item.get('line_end_date')
-                    start = line_item.get('line_start_date')
-                    devices = line_item.get('devices')
+                purchase_id = order.get('purchase_id')
+                order_no = order.get('order_no')
 
-                    if start and end and devices:
+                for line_item in order['line_items']:
+                    line_no = line_item.get('line_no')
+                    devices = line_item.get('devices')
+                    contractid = line_item.get('line_notes')
+                    start = line_item.get('line_start_date')
+                    end = line_item.get('line_end_date')
+
+                    if start and end and devices and contractid:
                         for device in devices:
                             if 'serial_no' in device:
                                 serial = device['serial_no']
-                                hasher = serial + start + end
+                                hasher = serial + contractid + start + end
                                 if hasher not in purchases:
-                                    purchases[serial + start + end] = [start, end]
+                                    purchases[hasher] = [purchase_id, order_no, line_no, contractid, start, end, discover['forcedupdate']]
 
     APPS_ROW = []
     if discover['dell']:
