@@ -67,11 +67,13 @@ class Config:
         hp = self.cc.getboolean('discover', 'hp')
         ibm = self.cc.getboolean('discover', 'ibm')
         lenovo = self.cc.getboolean('discover', 'lenovo')
+        forcedupdate = self.cc.getboolean('discover', 'forcedupdate')
         return {
             'dell': dell,
             'hp': hp,
             'ibm': ibm,
-            'lenovo': lenovo
+            'lenovo': lenovo,
+            'forcedupdate': forcedupdate
         }
 
     def __get_dell_cfg(self):
