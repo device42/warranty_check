@@ -199,9 +199,8 @@ class Hp(WarrantyBase, object):
             data.update({'line_contract_type': item['type']})
 
             try:
-                # There's a max 32 character limit
-                # on the line service type field in Device42 (version 10.2.1)
-                service_level_description = left(item['serviceLevel'], 32)
+                # There's a max 64 character limit on the line service type field in Device42 (version 13.1.0)
+                service_level_description = left(sub_item['ServiceLevelDescription'], 64)
                 data.update({'line_service_type': service_level_description})
             except:
                 pass
