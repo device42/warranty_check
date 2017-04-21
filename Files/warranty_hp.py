@@ -71,7 +71,7 @@ class Hp(WarrantyBase, object):
             resp = requests.post(self.url + '/productWarranty/v1/jobs',
                                  json=payload, headers=headers, verify=True, timeout=timeout)
             result = json.loads(resp.text)
-            if 'fault' not in result:
+            if 'fault' not in result and 'error' not in resp.text:
                 return result
             else:
                 if retry:
@@ -131,6 +131,26 @@ class Hp(WarrantyBase, object):
             return None
 
     def run_warranty_check(self, inline_serials, retry=True):
+        # making sure the warranty also gets updated if the serial has been changed by decom lifecycle process
+        global full_serials
+        full_serials = {}
+
+        incoming_serials = inline_serials.split(',')
+        inline_serials = []
+
+        for d42_serial in incoming_serials:
+            d42_serial = d42_serial.upper()
+            if '_' in d42_serial:
+                full_serials.update({d42_serial.split('_')[0]: d42_serial})
+                d42_serial = d42_serial.split('_')[0]
+            elif '(' in d42_serial:
+                full_serials.update({d42_serial.split('(')[0]: d42_serial})
+                d42_serial = d42_serial.split('(')[0]
+            else:
+                full_serials.update({d42_serial: d42_serial})
+            inline_serials.append(d42_serial)
+        inline_serials = ','.join(inline_serials)
+
         if self.debug:
             print '\t[+] Checking warranty info for "%s"' % inline_serials
         timeout = 10
@@ -168,6 +188,7 @@ class Hp(WarrantyBase, object):
             return None
 
     def process_result(self, result, purchases):
+        global full_serials
         data = {}
 
         for item in result:
@@ -186,7 +207,7 @@ class Hp(WarrantyBase, object):
             data.update({'order_no': order_no})
             data.update({'completed': 'yes'})
             data.update({'vendor': 'HP'})
-            data.update({'line_device_serial_nos': serial})
+            data.update({'line_device_serial_nos': full_serials[serial]})
             data.update({'line_type': 'contract'})
             data.update({'line_item_type': 'device'})
             data.update({'line_completed': 'yes'})
