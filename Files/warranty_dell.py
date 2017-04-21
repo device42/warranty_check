@@ -104,7 +104,6 @@ class Dell(WarrantyBase, object):
                     serial = asset['ServiceTag']
                     customernumber = asset['CustomerNumber']
                     country = asset['CountryLookupCode']
-                    ship_date = asset['ShipDate'].split('T')[0]
 
                     '''
                     For future implementation of registering the purchase date as a lifecycle event
@@ -119,6 +118,7 @@ class Dell(WarrantyBase, object):
                     # We need check per warranty service item
                     for sub_item in warranties:
                         data.clear()
+                        ship_date = asset['ShipDate'].split('T')[0]
                         try:
                             product_id = product['ProductId']
                         except:
