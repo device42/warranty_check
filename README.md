@@ -1,6 +1,6 @@
-#Warranty check
+# Warranty check
 
-##About Device42
+## About Device42
 [Device42](http://www.device42.com) is a comprehensive data center inventory management and IP Address management software that integrates centralized password management, impact charts and applications mappings with IT asset management.
 
 ## Intro
@@ -22,7 +22,7 @@ In order for this script to check warranty status of the device, the device must
 - IBM script points to warranty info not related to the SKU, serial given
 
 ## Change Log
-- Please check `changelog.md`
+- Please check `CHANGELOG.md`
 
 ## Usage
 Set required parameters in warranty.cfg file and run warranty_dell.py script:
