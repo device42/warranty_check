@@ -15,7 +15,7 @@ In order for this script to check warranty status of the device, the device must
 
 ## New Changes
 - service type field has been extended in version 13.1.0.
-- Added an option to force updating the line items (currently only works for Dell). Needed as the Service Type does not get updated otherwise as the contents of the field can't be checked via the api to see if it needs a change.
+- Added an option to force updating the line items. Needed as the Service Type does not get updated otherwise as the contents of the field can't be checked via the api to see if it needs a change.
 
 
 ## Changes

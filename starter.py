@@ -117,7 +117,6 @@ if __name__ == '__main__':
     # get purchases data from Device42
     orders = d42_rest.get_purchases()
     purchases = {}
-    #forcedupdate = False
 
     if orders and 'purchases' in orders:
         for order in orders['purchases']:
@@ -132,7 +131,7 @@ if __name__ == '__main__':
                     start = line_item.get('line_start_date')
                     end = line_item.get('line_end_date')
 
-                    if start and end and devices and contractid:
+                    if start and end and devices:
                         for device in devices:
                             if 'serial_no' in device:
                                 serial = device['serial_no']
