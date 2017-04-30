@@ -34,6 +34,7 @@ class Dell(WarrantyBase, object):
             print '\t[+] Checking warranty info for "%s"' % inline_serials
         timeout = 10
 
+
         # making sure the warranty also gets updated if the serial has been changed by decom lifecycle process
         incoming_serials = inline_serials.split(',')
         inline_serials = []
@@ -52,7 +53,7 @@ class Dell(WarrantyBase, object):
         inline_serials = ','.join(inline_serials)
 
         payload = {'id': inline_serials, 'apikey': self.api_key, 'accept': 'Application/json'}
-        
+
         try:
             resp = requests.get(self.url, params=payload, verify=True, timeout=timeout)
             msg = 'Status code: %s' % str(resp.status_code)
@@ -101,6 +102,8 @@ class Dell(WarrantyBase, object):
                         order_no = self.generate_random_order_no()
 
                     serial = asset['ServiceTag']
+                    customernumber = asset['CustomerNumber']
+                    country = asset['CountryLookupCode']
 
                     '''
                     For future implementation of registering the purchase date as a lifecycle event
@@ -155,9 +158,8 @@ class Dell(WarrantyBase, object):
                             continue
 
                         try:
-                            # There's a max 32 character limit
-                            # on the line service type field in Device42 (version 10.2.1)
-                            service_level_description = left(sub_item['ServiceLevelDescription'], 32)
+                            # There's a max 64 character limit on the line service type field in Device42 (version 13.1.0)
+                            service_level_description = left(sub_item['ServiceLevelDescription'], 64)
                             data.update({'line_service_type': service_level_description})
                         except:
                             pass
@@ -168,16 +170,22 @@ class Dell(WarrantyBase, object):
                         data.update({'line_start_date': start_date})
                         data.update({'line_end_date': end_date})
 
-                        # update or duplicate? Compare warranty dates by serial, contract_id and end date
-                        hasher = serial + start_date + end_date
-
+                        # update or duplicate? Compare warranty dates by serial, contract_id, start date and end date
+                        hasher = serial + line_contract_id + start_date + end_date
                         try:
-                            d_start, d_end = purchases[hasher]
+                            d_purchase_id, d_order_no, d_line_no, d_contractid, d_start, d_end, forcedupdate = purchases[hasher]
                             # check for duplicate state
-                            if d_start == start_date and d_end == end_date:
+                            if d_contractid == line_contract_id and d_start == start_date and d_end == end_date:
                                 print '\t[!] Duplicate found. Purchase ' \
                                       'for SKU "%s" and "%s" with end date "%s" ' \
-                                      'is already uploaded' % (serial, line_contract_id, end_date)
+                                      'order_id: %s and line_no: %s' % (serial, line_contract_id, end_date, d_purchase_id, d_line_no)
+                                #print '\t\tThese would be the order_id and line_no: "%s" and "%s"' % (d_purchase_id, d_order_no)
+                                if forcedupdate == True:
+                                    print '\t\t Forcedupdate: %s' % (forcedupdate)
+                                    data.update({'order_no': start_date})
+                                    data.update({'purchase_id': d_purchase_id})
+                                    data.update({'line_no': d_line_no})
+                                    self.d42_rest.upload_data(data)
                         except KeyError:
                             self.d42_rest.upload_data(data)
                             data.clear()
