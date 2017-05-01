@@ -18,7 +18,6 @@ In order for this script to check warranty status of the device, the device must
 
 ## Gotchas
 - If either hardware model or serial # is missing, warranty status won't be checked for device.
-- HP script unstable, may require retries.
 - IBM script points to warranty info not related to the SKU, serial given
 
 ## Change Log

@@ -113,7 +113,7 @@ class Hp(WarrantyBase, object):
             resp = requests.get(self.url + '/productWarranty/v1/jobs/' + job['jobId'],
                                 headers=headers, verify=True, timeout=timeout)
             result = json.loads(resp.text)
-            if result['status'] == 'complete':
+            if result['status'] == 'completed':
                 return result
             else:
                 if retry:
