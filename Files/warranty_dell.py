@@ -176,8 +176,9 @@ class Dell(WarrantyBase, object):
                             d_purchase_id, d_order_no, d_line_no, d_contractid, d_start, d_end, forcedupdate = purchases[hasher]
 
                             if forcedupdate:
-                                data['purchase_id'] = d_purchase_id
-                                data.pop('order_no')
+                                data.update({'order_no': start_date})
+                                data.update({'purchase_id': d_purchase_id})
+                                data.update({'line_no': d_line_no})
                                 raise KeyError
 
                             # check for duplicate state
