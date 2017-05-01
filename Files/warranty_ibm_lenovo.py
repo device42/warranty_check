@@ -128,7 +128,7 @@ class IbmLenovo(WarrantyBase, object):
             else:
                 data.update({'vendor': 'LENOVO'})
 
-            data.update({'line_device_serial_nos': serial})
+            data.update({'line_device_serial_nos': serial.split('.')[0]})
             data.update({'line_type': 'contract'})
             data.update({'line_item_type': 'device'})
             data.update({'line_completed': 'yes'})
@@ -152,10 +152,16 @@ class IbmLenovo(WarrantyBase, object):
                     pass
 
                 # update or duplicate? Compare warranty dates by serial, contract_id and end date
-                hasher = serial + start_date + end_date
+                hasher = serial.split('.')[0] + start_date + end_date
 
                 try:
-                    d_start, d_end = purchases[hasher]
+                    d_purchase_id, d_order_no, d_line_no, d_contractid, d_start, d_end, forcedupdate = purchases[hasher]
+
+                    if forcedupdate:
+                        data['purchase_id'] = d_purchase_id
+                        data.pop('order_no')
+                        raise KeyError
+
                     # check for duplicate state
                     if d_start == start_date and d_end == end_date:
                         print '\t[!] Duplicate found. Purchase ' \

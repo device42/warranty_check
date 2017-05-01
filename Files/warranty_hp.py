@@ -230,7 +230,13 @@ class Hp(WarrantyBase, object):
             hasher = serial + start_date + end_date
 
             try:
-                d_start, d_end = purchases[hasher]
+                d_purchase_id, d_order_no, d_line_no, d_contractid, d_start, d_end, forcedupdate = purchases[hasher]
+
+                if forcedupdate:
+                    data['purchase_id'] = d_purchase_id
+                    data.pop('order_no')
+                    raise KeyError
+
                 # check for duplicate state
                 if d_start == start_date and d_end == end_date:
                     print '\t[!] Duplicate found. Purchase ' \

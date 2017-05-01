@@ -174,18 +174,18 @@ class Dell(WarrantyBase, object):
                         hasher = serial + line_contract_id + start_date + end_date
                         try:
                             d_purchase_id, d_order_no, d_line_no, d_contractid, d_start, d_end, forcedupdate = purchases[hasher]
+
+                            if forcedupdate:
+                                data['purchase_id'] = d_purchase_id
+                                data.pop('order_no')
+                                raise KeyError
+
                             # check for duplicate state
                             if d_contractid == line_contract_id and d_start == start_date and d_end == end_date:
                                 print '\t[!] Duplicate found. Purchase ' \
                                       'for SKU "%s" and "%s" with end date "%s" ' \
                                       'order_id: %s and line_no: %s' % (serial, line_contract_id, end_date, d_purchase_id, d_line_no)
-                                #print '\t\tThese would be the order_id and line_no: "%s" and "%s"' % (d_purchase_id, d_order_no)
-                                if forcedupdate == True:
-                                    print '\t\t Forcedupdate: %s' % (forcedupdate)
-                                    data.update({'order_no': start_date})
-                                    data.update({'purchase_id': d_purchase_id})
-                                    data.update({'line_no': d_line_no})
-                                    self.d42_rest.upload_data(data)
+
                         except KeyError:
                             self.d42_rest.upload_data(data)
                             data.clear()
