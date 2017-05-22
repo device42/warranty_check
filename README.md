@@ -29,5 +29,6 @@ Set required parameters in warranty.cfg file and run warranty_dell.py script:
 	python starter.py
 
 ## Compatibility
+* requests module required
 * Script runs on Linux and Windows
 * Python 2.7
