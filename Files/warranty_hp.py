@@ -167,6 +167,7 @@ class Hp(WarrantyBase, object):
             return None
 
         try:
+            time.sleep(5)
             resp = requests.get(self.url + '/productWarranty/v1/jobs/' + job['jobId'] + '/results',
                                 headers=headers, verify=True, timeout=timeout)
             result = resp.json()
@@ -194,6 +195,7 @@ class Hp(WarrantyBase, object):
         for item in result:
 
             if item['type'] is None:
+                print 'Skip serial #: %s ( no "warranty type" )' % item['sn']
                 continue
 
             data.clear()
