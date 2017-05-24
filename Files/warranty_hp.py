@@ -161,13 +161,14 @@ class Hp(WarrantyBase, object):
 
         job = self.prepare_job(inline_serials)
         if self.debug:
-            print '\t[+] Waiting 5 seconds before getting job result'
-        time.sleep(5)
+            print '\t[+] Please wait... checking job status...'
+        time.sleep(len(inline_serials))
         if self.check_job(job) is None:
             return None
 
         try:
-            print '\t[+] Please wait...'
+            if self.debug:
+                print '\t[+] Please wait... checking job result...'
             time.sleep(len(inline_serials))
             resp = requests.get(self.url + '/productWarranty/v1/jobs/' + job['jobId'] + '/results',
                                 headers=headers, verify=True, timeout=timeout)
@@ -196,7 +197,7 @@ class Hp(WarrantyBase, object):
         for item in result:
 
             if item['type'] is None:
-                print 'Skip serial #: %s ( no "warranty type" )' % item['sn']
+                print 'Skip serial #: %s ( no "warranty type", probably expired)' % item['sn']
                 continue
 
             data.clear()
