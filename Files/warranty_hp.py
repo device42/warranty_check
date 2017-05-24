@@ -167,11 +167,12 @@ class Hp(WarrantyBase, object):
             return None
 
         try:
-            time.sleep(5)
+            print '\t[+] Please wait...'
+            time.sleep(len(inline_serials))
             resp = requests.get(self.url + '/productWarranty/v1/jobs/' + job['jobId'] + '/results',
                                 headers=headers, verify=True, timeout=timeout)
             result = resp.json()
-            if 'fault' in result:
+            if 'fault' in result or ('message' in result and result['message'] == 'An error has occurred.'):
                 if retry:
                     # waiting for result
                     print '\t[+] Waiting 5 seconds before getting job result'
