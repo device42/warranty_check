@@ -162,14 +162,14 @@ class Hp(WarrantyBase, object):
         job = self.prepare_job(inline_serials)
         if self.debug:
             print '\t[+] Please wait... checking job status...'
-        time.sleep(len(inline_serials))
+        time.sleep(10)
         if self.check_job(job) is None:
             return None
 
         try:
             if self.debug:
                 print '\t[+] Please wait... checking job result...'
-            time.sleep(len(inline_serials))
+            time.sleep(10)
             resp = requests.get(self.url + '/productWarranty/v1/jobs/' + job['jobId'] + '/results',
                                 headers=headers, verify=True, timeout=timeout)
             result = resp.json()
@@ -181,7 +181,7 @@ class Hp(WarrantyBase, object):
                     print '\t[!] Retry'
                     self.run_warranty_check(inline_serials, False)
                 else:
-                    print '\t[!] Fail, please try again later'
+                    print '\t[!] Fail, please try again later / or try to reproduce API call here : https://developers.hp.com/css/api/product-warranty-api-0, if you be able to get correct results, please create "issue" in the our repository. Thanks.'
                     return None
             else:
                 return result
@@ -197,7 +197,7 @@ class Hp(WarrantyBase, object):
         for item in result:
 
             if item['type'] is None:
-                print 'Skip serial #: %s ( no "warranty type", probably expired)' % item['sn']
+                print 'Skip serial #: %s ( no "warranty type", probably expired )' % item['sn']
                 continue
 
             data.clear()
