@@ -24,9 +24,19 @@ In order for this script to check warranty status of the device, the device must
 - Please check `CHANGELOG.md`
 
 ## Usage
-Set required parameters in warranty.cfg file and run warranty_dell.py script:
+- Set required parameters in warranty.cfg file and run warranty_dell.py script:
 
-	python starter.py
+## Linux Usage
+- Install pip depend on your distro.
+- Run `pip install requests`
+- Run `python starter.py`
+
+## Windows Usage
+- Download the pip installer: [https://bootstrap.pypa.io/get-pip.py](https://bootstrap.pypa.io/get-pip.py)
+- Open a console in the download folder as Admin and run `get-pip.py`.
+- Add the path to your environment : "<<PythonFolder>>\Scripts"
+- Run `pip install requests`
+- Run `python starter.py`
 
 ## Compatibility
 * requests module required
