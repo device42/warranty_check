@@ -80,6 +80,7 @@ def loader(name, api, d42):
             for item in items:
                 try:
                     d42_id, d42_serial, d42_vendor = item
+                    if '_' in d42_serial: d42_serial = d42_serial.split('_')[0]
                     if name in d42_vendor.lower():
                         print '[+] %s serial #: %s' % (name.title(), d42_serial)
                         serials.append(d42_serial)
