@@ -57,16 +57,7 @@ class Dell(WarrantyBase, object):
         try:
             resp = requests.get(self.url, params=payload, verify=True, timeout=timeout)
             msg = 'Status code: %s' % str(resp.status_code)
-<<<<<<< HEAD
             if str(resp.status_code) != '200':
-=======
-            if str(resp.status_code) == '401':
-                print '\t[!] HTTP error. Message was: %s' % msg
-                print '\t[!] API call unauthorized. Wrong/expired key? Wrong endpoint?'
-                print '\t[!] Halting script.'
-                sys.exit()
-            if str(resp.status_code) == '404':
->>>>>>> 1149c6fe3048c236883a70620d3b30d300fc8a14
                 print '\t[!] HTTP error. Message was: %s' % msg
                 if str(resp.status_code) == '401':
                     print '\t[!] API call unauthorized. Wrong/expired key? Wrong endpoint?'
