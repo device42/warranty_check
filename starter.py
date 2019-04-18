@@ -106,6 +106,7 @@ if __name__ == '__main__':
     cfg = Config()
     d42_cfg = cfg.get_config('d42')
     discover = cfg.get_config('discover')
+    other = cfg.get_config('other')
 
     # init
     d42_params = {
@@ -114,6 +115,11 @@ if __name__ == '__main__':
         'url': d42_cfg['url']
     }
     d42_rest = Device42rest(d42_params)
+
+    DEBUG =  bool(other['debug'])
+    DOQL =  bool(other['doql'])
+    if other['debug'].lower() == 'false': DEBUG=bool('')
+    if other['doql'].lower() == 'false': DOQL=bool('')
 
     # get purchases data from Device42
     orders = d42_rest.get_purchases()

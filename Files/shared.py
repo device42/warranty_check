@@ -14,6 +14,7 @@ CC = ConfigParser.RawConfigParser()
 if os.path.isfile(CONFIGFILE):
     CC.readfp(open(CONFIGFILE, "r"))
     DEBUG = CC.getboolean('other', 'debug')
+    DOQL = CC.getboolean('other', 'doql')
     RETRY = int(CC.get('other', 'retry'))
     ORDER_NO_TYPE = CC.get('other', 'order_no_type')
 else:
@@ -44,6 +45,8 @@ class Config:
             res = self.__get_ibm_cfg()
         elif source == 'lenovo':
             res = self.__get_lenovo_cfg()
+        elif source == 'other':
+            res = self.__get_other_cfg()
         else:
             print '\n[!] Error. Unknown source "%s".\n\tExiting...\n' % source
             sys.exit()
@@ -123,6 +126,15 @@ class Config:
         return {
             'url': lenovo_url,
             'url2': lenovo_url2
+        }
+
+    def __get_other_cfg(self):
+        # lenovo -------------------------------------------
+        debug = self.cc.get('other', 'debug')
+        doql = self.cc.get('other', 'doql')
+        return {
+            'debug': debug,
+            'doql': doql
         }
 
 
