@@ -64,8 +64,8 @@ class Dell(WarrantyBase, object):
                 if str(resp.status_code) == '404':
                     print '\t[!] 404: Information not found?'
                 # suspecting blockage due to to many api calls. Put in a pause of 30 seconds and go on
-                print '\t[!] waiting for 30 seconds to let the api server calm down'
-                time.sleep(30)
+                print '\t[!] waiting for 60 seconds to let the api server calm down'
+                time.sleep(60)
                 if retry:
                     print '\n[!] Retry'
                     self.run_warranty_check(inline_serials, False)
