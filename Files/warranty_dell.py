@@ -101,6 +101,15 @@ class Dell(WarrantyBase, object):
                         order_no = asset['OrderNumber']
                     elif self.order_no == 'common':
                         order_no = self.common
+                    elif self.order_no == 'shipdate':
+                        if self.debug:
+                            print '[!] WORKING ON: \n',item
+                        try:
+                            #some systems have no shipping date mentioned
+                            #or the service_tag is incorrect. Confirm via iDrac and support.dell.com
+                            order_no = asset['ShipDate'].split('T')[0]
+                        except:
+                            order_no = '0000-00-00'
                     else:
                         order_no = self.generate_random_order_no()
 
