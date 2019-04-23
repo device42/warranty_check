@@ -30,11 +30,6 @@ class Dell(WarrantyBase, object):
         global full_serials
         full_serials = {}
 
-        if self.debug:
-            print '\t[+] Checking warranty info for "%s"' % inline_serials
-        timeout = 10
-
-
         # making sure the warranty also gets updated if the serial has been changed by decom lifecycle process
         incoming_serials = inline_serials.split(',')
         inline_serials = []
@@ -51,6 +46,10 @@ class Dell(WarrantyBase, object):
                 full_serials.update({d42_serial: d42_serial})
             inline_serials.append(d42_serial)
         inline_serials = ','.join(inline_serials)
+
+        if self.debug:
+            print '\t[+] Checking warranty info for "%s"' % inline_serials
+        timeout = 10
 
         payload = {'id': inline_serials, 'apikey': self.api_key, 'accept': 'Application/json'}
 
