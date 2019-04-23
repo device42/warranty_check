@@ -78,7 +78,7 @@ class Dell(WarrantyBase, object):
             self.error_msg(e)
             return None
 
-    def process_result(self, result, purchases):
+    def process_result(self, result, purchases, ordernos):
         global full_serials
         data = {}
 
@@ -104,6 +104,12 @@ class Dell(WarrantyBase, object):
                         order_no = self.common
                     else:
                         order_no = self.generate_random_order_no()
+
+                    try:
+                        #If an existing registration with ordernumber exists, make use of that one.
+                        order_no = ordernos[asset['ServiceTag'].lower()]
+                    except Exception as e:
+                        print e
 
                     serial = asset['ServiceTag']
                     customernumber = asset['CustomerNumber']

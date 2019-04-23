@@ -58,6 +58,7 @@ def get_vendor_api(name):
 
 
 def loader(name, api, d42):
+    global ordernos
 
     # Locate the devices involved, based on the hardware models found, add offset with recursion
     offset = 0
@@ -93,7 +94,7 @@ def loader(name, api, d42):
                 result = vendor_api.run_warranty_check(inline_serials)
 
                 if result is not None:
-                    api.process_result(result, purchases)
+                    api.process_result(result, purchases, ordernos)
 
             offset += 50
         else:
