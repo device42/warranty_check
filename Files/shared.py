@@ -204,6 +204,24 @@ class Device42rest:
         response = self.get_data(api_path)
         return response
 
+    def fetcher(self, url):
+        headers = {
+            'Authorization': 'Basic ' + base64.b64encode(self.username + ':' + self.password),
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+
+        r = requests.get(url, headers=headers, verify=False)
+        msg = 'Status code: %s' % str(r.status_code)
+        return r.text
+
+    def get_doqldata(self, query):
+        if DEBUG:
+            print '\n[!] DOQL: ', query
+        api_path = '/services/data/v1.0/query/?query='
+        url = self.url+'/services/data/v1.0/query/?query='+query
+        response = self.fetcher(url)
+        return response
+
     def get_lifecycle(self):
         if DEBUG:
             print '\n[!] Fetching life cycle purchase events from Device42'
