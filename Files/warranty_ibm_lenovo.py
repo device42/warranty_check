@@ -152,7 +152,7 @@ class IbmLenovo(WarrantyBase, object):
                     pass
 
                 # update or duplicate? Compare warranty dates by serial, contract_id and end date
-                hasher = serial.split('.')[0] + start_date + end_date
+                hasher = serial.lower() + start_date + end_date
 
                 try:
                     d_purchase_id, d_order_no, d_line_no, d_contractid, d_start, d_end, forcedupdate = purchases[hasher]

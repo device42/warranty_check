@@ -175,7 +175,7 @@ class Dell(WarrantyBase, object):
                         data.update({'line_end_date': end_date})
 
                         # update or duplicate? Compare warranty dates by serial, contract_id, start date and end date
-                        hasher = serial + line_contract_id + start_date + end_date
+                        hasher = serial.lower() + line_contract_id + start_date + end_date
                         try:
                             d_purchase_id, d_order_no, d_line_no, d_contractid, d_start, d_end, forcedupdate = purchases[hasher]
 
