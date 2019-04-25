@@ -20,6 +20,9 @@ In order for this script to check warranty status of the device, the device must
 - If either hardware model or serial # is missing, warranty status won't be checked for device.
 - IBM script points to warranty info not related to the SKU, serial given
 
+## Known issues
+- Leave the DOQL boolean to True. The regular API doesn't built up the dictionary for compensating Dell removing the ordernumbers. If on false you could get double registrations
+
 ## Change Log
 - Please check `CHANGELOG.md`
 
