@@ -62,7 +62,7 @@ class Dell(WarrantyBase, object):
                     print '\t[!] API call unauthorized. Wrong/expired key? Wrong endpoint?'
                 if str(resp.status_code) == '404':
                     print '\t[!] 404: Information not found?'
-                # suspecting blockage due to to many api calls. Put in a pause of 30 seconds and go on
+                # suspecting blockage due to to many api calls. Put in a pause and go on
                 print '\t[!] waiting for 60 seconds to let the api server calm down'
                 time.sleep(60)
                 if retry:
