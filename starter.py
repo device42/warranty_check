@@ -137,9 +137,9 @@ if __name__ == '__main__':
                     # As a result there is no information to compare with, so double registrations were made.
                     # some alerting needs to be put in place for this.
                     if forcedupdate:
-                        if DEBUG: print '[!] no purchaselines found. Continue is forced.'
+                        if DEBUG: print '[!] no purchaselines found. Continue is forced. This could result in double entries!'
                     else:
-                        if DEBUG: print '[!] No purchaselines!\n\tHalting script'
+                        if DEBUG: print '[!] No purchaselines!\n\tHalting script to prevent double registrations.'
                         sys.exit()
                 #Check if there is a lineitem for the order. If so register the lineitem in the array
                 purchase_id     = order.split(',')[0]
