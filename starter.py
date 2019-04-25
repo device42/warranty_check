@@ -129,9 +129,7 @@ if __name__ == '__main__':
     ordernos  = {}
 
     if DOQL:
-        #orders = d42_rest.get_doqldata('select purchaselineitem_pk,order_no,line_no,contract_id,contract_type_name,service_type_name,li.start_date,li.end_date,LIDEV.device_name,DEV.serial_no,li.cc_code from view_purchase_v1 PUR LEFT JOIN view_purchaselineitem_v1 LI ON PUR.purchase_pk=LI.purchase_fk LEFT JOIN view_purchaselineitems_to_devices_v1 LIDEV on (LI.purchaselineitem_pk=LIDEV.purchaselineitem_fk) LEFT JOIN view_device_v1 DEV on (LIDEV.device_fk=DEV.device_pk) WHERE order_no=\'104050847\' AND purchaselineitem_pk=23554 limit 5')
         orders = d42_rest.get_doqldata('select purchaselineitem_pk,order_no,line_no,contract_id,contract_type_name,service_type_name,li.start_date,li.end_date,LIDEV.device_name,DEV.serial_no,li.cc_code from view_purchase_v1 PUR LEFT JOIN view_purchaselineitem_v1 LI ON PUR.purchase_pk=LI.purchase_fk LEFT JOIN view_purchaselineitems_to_devices_v1 LIDEV on (LI.purchaselineitem_pk=LIDEV.purchaselineitem_fk) LEFT JOIN view_device_v1 DEV on (LIDEV.device_fk=DEV.device_pk)' )
-        # 23554,104050847,4299,732-22780,Warranty,ProSupport for DataCenter/ProSup,2015-07-26,2016-11-01,prod-trid-mssql-001_1474535852.74,123456
         #if DEBUG:
         #    print orders
         orders = orders.splitlines()
