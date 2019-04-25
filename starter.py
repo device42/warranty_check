@@ -116,12 +116,9 @@ if __name__ == '__main__':
     }
     d42_rest = Device42rest(d42_params)
 
-    DEBUG =  bool(other['debug'])
-    DOQL =  bool(other['doql'])
-    forcedupdate = bool(discover['forcedupdate'])
-    if other['debug'].lower() == 'false': DEBUG=bool('')
-    if other['doql'].lower()  == 'false': DOQL=bool('')
-    if discover['forcedupdate'].lower()  == 'false': forcedupdate=bool('')
+    forcedupdate = discover['forcedupdate']
+    DEBUG        = other['debug']
+    DOQL         = other['doql']
 
     # get purchases data from Device42
     purchases = {}

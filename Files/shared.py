@@ -130,8 +130,8 @@ class Config:
 
     def __get_other_cfg(self):
         # lenovo -------------------------------------------
-        debug = self.cc.get('other', 'debug')
-        doql = self.cc.get('other', 'doql')
+        debug = self.cc.getboolean('other', 'debug')
+        doql = self.cc.getboolean('other', 'doql')
         return {
             'debug': debug,
             'doql': doql
