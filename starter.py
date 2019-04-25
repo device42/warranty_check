@@ -118,10 +118,10 @@ if __name__ == '__main__':
 
     DEBUG =  bool(other['debug'])
     DOQL =  bool(other['doql'])
-    #forcedupdate = bool(discover['forcedupdate'])
+    forcedupdate = bool(discover['forcedupdate'])
     if other['debug'].lower() == 'false': DEBUG=bool('')
     if other['doql'].lower()  == 'false': DOQL=bool('')
-    #if discover['forcedupdate'].lower()  == 'false': forcedupdate=bool('')
+    if discover['forcedupdate'].lower()  == 'false': forcedupdate=bool('')
 
     # get purchases data from Device42
     purchases = {}
@@ -135,6 +135,15 @@ if __name__ == '__main__':
         orders = orders.splitlines()
         for order in orders:
             if order.split(',')[1]:
+                if not order.split(',')[2]:
+                    # some occurances happened that only the ordernu was returned.
+                    # As a result there is no information to compare with, so double registrations were made.
+                    # some alerting needs to be put in place for this.
+                    if forcedupdate:
+                        if DEBUG: print '[!] no purchaselines found. Continue is forced.'
+                    else:
+                        if DEBUG: print '[!] No purchaselines!\n\tHalting script'
+                        sys.exit()
                 #Check if there is a lineitem for the order. If so register the lineitem in the array
                 purchase_id     = order.split(',')[0]
                 order_no        = order.split(',')[1]
