@@ -49,7 +49,7 @@ class Dell(WarrantyBase, object):
 
         if self.debug:
             print '\t[+] Checking warranty info for "%s"' % inline_serials
-        timeout = 10
+        timeout = 30
 
         payload = {'id': inline_serials, 'apikey': self.api_key, 'accept': 'Application/json'}
 
