@@ -20,8 +20,12 @@ In order for this script to check warranty status of the device, the device must
 - If either hardware model or serial # is missing, warranty status won't be checked for device.
 - IBM script points to warranty info not related to the SKU, serial given
 
+## Known issues
+- Leave the DOQL boolean to True. The regular API doesn't built up the dictionary for compensating Dell removing the ordernumbers. If on false you could get double registrations
+
 ## Change Log
 - Please check `CHANGELOG.md`
+
 
 ## Usage
 - Set required parameters in warranty.cfg file and run warranty_dell.py script:
@@ -37,6 +41,7 @@ In order for this script to check warranty status of the device, the device must
 - Add the path to your environment : "%PythonFolder%\Scripts"
 - Run `pip install requests`
 - Run `python starter.py`
+- Or just download python 2.7 from https://www.python.org/ as pip is included
 
 ## Compatibility
 * requests module required

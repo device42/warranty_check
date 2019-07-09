@@ -30,11 +30,6 @@ class Dell(WarrantyBase, object):
         global full_serials
         full_serials = {}
 
-        if self.debug:
-            print '\t[+] Checking warranty info for "%s"' % inline_serials
-        timeout = 10
-
-
         # making sure the warranty also gets updated if the serial has been changed by decom lifecycle process
         incoming_serials = inline_serials.split(',')
         inline_serials = []
@@ -52,16 +47,24 @@ class Dell(WarrantyBase, object):
             inline_serials.append(d42_serial)
         inline_serials = ','.join(inline_serials)
 
+        if self.debug:
+            print '\t[+] Checking warranty info for "%s"' % inline_serials
+        timeout = 30
+
         payload = {'id': inline_serials, 'apikey': self.api_key, 'accept': 'Application/json'}
 
         try:
             resp = requests.get(self.url, params=payload, verify=True, timeout=timeout)
             msg = 'Status code: %s' % str(resp.status_code)
-            if str(resp.status_code) == '401' or str(resp.status_code) == '404':
+            if str(resp.status_code) != '200':
                 print '\t[!] HTTP error. Message was: %s' % msg
-                print '\t[!] waiting for 30 seconds to let the api server calm down'
-                # suspecting blockage due to to many api calls. Put in a pause of 30 seconds and go on
-                time.sleep(30)
+                if str(resp.status_code) == '401':
+                    print '\t[!] API call unauthorized. Wrong/expired key? Wrong endpoint?'
+                if str(resp.status_code) == '404':
+                    print '\t[!] 404: Information not found?'
+                # suspecting blockage due to to many api calls. Put in a pause and go on
+                print '\t[!] waiting for 60 seconds to let the api server calm down'
+                time.sleep(60)
                 if retry:
                     print '\n[!] Retry'
                     self.run_warranty_check(inline_serials, False)
@@ -74,7 +77,7 @@ class Dell(WarrantyBase, object):
             self.error_msg(e)
             return None
 
-    def process_result(self, result, purchases):
+    def process_result(self, result, purchases, ordernos):
         global full_serials
         data = {}
 
@@ -98,8 +101,23 @@ class Dell(WarrantyBase, object):
                         order_no = asset['OrderNumber']
                     elif self.order_no == 'common':
                         order_no = self.common
+                    elif self.order_no == 'shipdate':
+                        if self.debug:
+                            print '[!] WORKING ON: \n',item
+                        try:
+                            #some systems have no shipping date mentioned
+                            #or the service_tag is incorrect. Confirm via iDrac and support.dell.com
+                            order_no = asset['ShipDate'].split('T')[0]
+                        except:
+                            order_no = '0000-00-00'
                     else:
                         order_no = self.generate_random_order_no()
+
+                    try:
+                        #If an existing registration with ordernumber exists, make use of that one.
+                        order_no = ordernos[asset['ServiceTag'].lower()]
+                    except Exception as e:
+                        print e
 
                     serial = asset['ServiceTag']
                     customernumber = asset['CustomerNumber']
@@ -171,13 +189,14 @@ class Dell(WarrantyBase, object):
                         data.update({'line_end_date': end_date})
 
                         # update or duplicate? Compare warranty dates by serial, contract_id, start date and end date
-                        hasher = serial + line_contract_id + start_date + end_date
+                        hasher = serial.lower() + line_contract_id + start_date + end_date
                         try:
                             d_purchase_id, d_order_no, d_line_no, d_contractid, d_start, d_end, forcedupdate = purchases[hasher]
 
                             if forcedupdate:
-                                data['purchase_id'] = d_purchase_id
-                                data.pop('order_no')
+                                data.update({'order_no': start_date})
+                                data.update({'purchase_id': d_purchase_id})
+                                data.update({'line_no': d_line_no})
                                 raise KeyError
 
                             # check for duplicate state

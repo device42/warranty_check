@@ -14,6 +14,7 @@ CC = ConfigParser.RawConfigParser()
 if os.path.isfile(CONFIGFILE):
     CC.readfp(open(CONFIGFILE, "r"))
     DEBUG = CC.getboolean('other', 'debug')
+    DOQL = CC.getboolean('other', 'doql')
     RETRY = int(CC.get('other', 'retry'))
     ORDER_NO_TYPE = CC.get('other', 'order_no_type')
 else:
@@ -44,6 +45,8 @@ class Config:
             res = self.__get_ibm_cfg()
         elif source == 'lenovo':
             res = self.__get_lenovo_cfg()
+        elif source == 'other':
+            res = self.__get_other_cfg()
         else:
             print '\n[!] Error. Unknown source "%s".\n\tExiting...\n' % source
             sys.exit()
@@ -125,6 +128,15 @@ class Config:
             'url2': lenovo_url2
         }
 
+    def __get_other_cfg(self):
+        # lenovo -------------------------------------------
+        debug = self.cc.getboolean('other', 'debug')
+        doql = self.cc.getboolean('other', 'doql')
+        return {
+            'debug': debug,
+            'doql': doql
+        }
+
 
 class Device42rest:
     def __init__(self, params):
@@ -190,6 +202,24 @@ class Device42rest:
             print '\n[!] Fetching order numbers from Device42'
         api_path = '/api/1.0/purchases/'
         response = self.get_data(api_path)
+        return response
+
+    def fetcher(self, url):
+        headers = {
+            'Authorization': 'Basic ' + base64.b64encode(self.username + ':' + self.password),
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+
+        r = requests.get(url, headers=headers, verify=False)
+        msg = 'Status code: %s' % str(r.status_code)
+        return r.text
+
+    def get_doqldata(self, query):
+        if DEBUG:
+            print '\n[!] DOQL: ', query
+        api_path = '/services/data/v1.0/query/?query='
+        url = self.url+'/services/data/v1.0/query/?query='+query
+        response = self.fetcher(url)
         return response
 
     def get_lifecycle(self):

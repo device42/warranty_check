@@ -58,6 +58,7 @@ def get_vendor_api(name):
 
 
 def loader(name, api, d42):
+    global ordernos
 
     # Locate the devices involved, based on the hardware models found, add offset with recursion
     offset = 0
@@ -92,7 +93,7 @@ def loader(name, api, d42):
                 result = vendor_api.run_warranty_check(inline_serials)
 
                 if result is not None:
-                    api.process_result(result, purchases)
+                    api.process_result(result, purchases, ordernos)
 
             offset += 50
         else:
@@ -105,6 +106,7 @@ if __name__ == '__main__':
     cfg = Config()
     d42_cfg = cfg.get_config('d42')
     discover = cfg.get_config('discover')
+    other = cfg.get_config('other')
 
     # init
     d42_params = {
@@ -114,30 +116,72 @@ if __name__ == '__main__':
     }
     d42_rest = Device42rest(d42_params)
 
+    forcedupdate = discover['forcedupdate']
+    DEBUG        = other['debug']
+    DOQL         = other['doql']
+
     # get purchases data from Device42
-    orders = d42_rest.get_purchases()
     purchases = {}
+    global ordernos
+    ordernos  = {}
 
-    if orders and 'purchases' in orders:
-        for order in orders['purchases']:
-            if 'line_items' in order:
-                purchase_id = order.get('purchase_id')
-                order_no = order.get('order_no')
+    if DOQL:
+        orders = d42_rest.get_doqldata('select purchaselineitem_pk,order_no,line_no,contract_id,contract_type_name,service_type_name,li.start_date,li.end_date,LIDEV.device_name,DEV.serial_no,li.cc_code from view_purchase_v1 PUR LEFT JOIN view_purchaselineitem_v1 LI ON PUR.purchase_pk=LI.purchase_fk LEFT JOIN view_purchaselineitems_to_devices_v1 LIDEV on (LI.purchaselineitem_pk=LIDEV.purchaselineitem_fk) LEFT JOIN view_device_v1 DEV on (LIDEV.device_fk=DEV.device_pk)' )
+        #if DEBUG:
+        #    print orders
+        orders = orders.splitlines()
+        for order in orders:
+            if order.split(',')[1]:
+                if not order.split(',')[2]:
+                    # some occurances happened that only the ordernu was returned.
+                    # As a result there is no information to compare with, so double registrations were made.
+                    # some alerting needs to be put in place for this.
+                    if forcedupdate:
+                        if DEBUG: print '[!] no purchaselines found. Continue is forced. This could result in double entries!'
+                    else:
+                        if DEBUG: print '[!] No purchaselines!\n\tHalting script to prevent double registrations.'
+                        sys.exit()
+                #Check if there is a lineitem for the order. If so register the lineitem in the array
+                purchase_id     = order.split(',')[0]
+                order_no        = order.split(',')[1]
+                line_no         = order.split(',')[2]
+                contractid      = order.split(',')[3]
+                contracttype    = order.split(',')[4]
+                servicetype     = order.split(',')[5]
+                start           = order.split(',')[6]
+                end             = order.split(',')[7]
+                devices         = order.split(',')[8]
+                serial          = order.split(',')[9]
 
-                for line_item in order['line_items']:
-                    line_no = line_item.get('line_no')
-                    devices = line_item.get('devices')
-                    contractid = line_item.get('line_notes')
-                    start = line_item.get('line_start_date')
-                    end = line_item.get('line_end_date')
+                # Build dictionary to compensate for Dell removing order_nos from the api output
+                ordernos[serial.split('_')[0].lower()] = order_no
 
-                    if start and end and devices:
-                        for device in devices:
-                            if 'serial_no' in device:
-                                serial = device['serial_no']
-                                hasher = serial + contractid + start + end
-                                if hasher not in purchases:
-                                    purchases[hasher] = [purchase_id, order_no, line_no, contractid, start, end, discover['forcedupdate']]
+                if start and end and devices and contractid and serial:
+                    hasher = serial.split('_')[0].lower() + contractid + start + end
+                    if hasher not in purchases:
+                        purchases[hasher] = [purchase_id, order_no, line_no, contractid, start, end, discover['forcedupdate']]
+    else:
+        orders = d42_rest.get_purchases()
+        if orders and 'purchases' in orders:
+            for order in orders['purchases']:
+                if 'line_items' in order:
+                    purchase_id = order.get('purchase_id')
+                    order_no = order.get('order_no')
+
+                    for line_item in order['line_items']:
+                        line_no = line_item.get('line_no')
+                        devices = line_item.get('devices')
+                        contractid = line_item.get('line_notes')
+                        start = line_item.get('line_start_date')
+                        end = line_item.get('line_end_date')
+
+                        if start and end and devices and contractid:
+                            for device in devices:
+                                if 'serial_no' in device:
+                                    serial = device['serial_no']
+                                    hasher = serial + contractid + start + end
+                                    if hasher not in purchases:
+                                        purchases[hasher] = [purchase_id, order_no, line_no, contractid, start, end, discover['forcedupdate']]
 
     APPS_ROW = []
     if discover['dell']:

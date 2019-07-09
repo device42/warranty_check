@@ -15,7 +15,10 @@ forcedupdate = False
 [dell]
 # set api_key as provided by Dell
 api_key =
-url = https://sandbox.api.dell.com/support/assetinfo/v4/getassetwarranty
+# production
+url = https://api.dell.com/support/assetinfo/v4/getassetwarranty
+# sandbox
+#url = https://sandbox.api.dell.com/support/assetinfo/v4/getassetwarranty
 
 [hp]
 # set api_key as provided by HP
@@ -34,10 +37,13 @@ url2 = http://support.lenovo.com/us/en/products
 [other]
 # print verbose info to STDOUT
 debug = True
+# use DOQL instead
+doql = True
 # number of retries for HTTP connections
 retry = 3
 # order number type can be one of:
-#	1. vendor   - order number is returned from vendor ( only for Dell )
+#	1. vendor   - order number is returned from vendor ( used to work for Dell. API doesn't return them anymore )
 #	2. common   - order number is randomly generated and same for all purchases
-#	3. descrete - order number is randomly generated and uniqe for every purchase
-order_no_type = vendor
+#	3. descrete - order number is randomly generated and unique for every purchase
+#	4. shipdate - order number is based on the shipping date of the equipment ( only for Dell )
+order_no_type = common
