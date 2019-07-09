@@ -41,6 +41,7 @@ In order for this script to check warranty status of the device, the device must
 - Add the path to your environment : "%PythonFolder%\Scripts"
 - Run `pip install requests`
 - Run `python starter.py`
+- Or just download python 2.7 from https://www.python.org/ as pip is included
 
 ## Compatibility
 * requests module required
