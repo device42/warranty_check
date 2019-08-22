@@ -18,7 +18,7 @@ if os.path.isfile(CONFIGFILE):
     ORDER_NO_TYPE = CC.get('other', 'order_no_type')
 else:
     print '\n[!] Cannot find config file!'
-    print '\tDid you rename warranty.cfg.example to warranty.cfg ?'
+    print '\tDid you rename warranty.cfg to warranty.cfg ?'
     print '\tExiting...'
     sys.exit()
 
@@ -67,12 +67,14 @@ class Config:
         hp = self.cc.getboolean('discover', 'hp')
         ibm = self.cc.getboolean('discover', 'ibm')
         lenovo = self.cc.getboolean('discover', 'lenovo')
+        cisco = self.cc.getboolean('discover', 'cisco')
         forcedupdate = self.cc.getboolean('discover', 'forcedupdate')
         return {
             'dell': dell,
             'hp': hp,
             'ibm': ibm,
             'lenovo': lenovo,
+            'cisco': cisco,
             'forcedupdate': forcedupdate
         }
 
@@ -99,12 +101,16 @@ class Config:
     def __get_cisco_cfg(self):
         # Cisco --------------------------------------------
         cisco_url = self.cc.get('cisco', 'url')
-        cisco_api_key = self.cc.get('cisco', 'api_key')
-        cisco_api_secret = self.cc.get('cisco', 'api_secret')
+        cisco_url_2 = self.cc.get('cisco', 'url2')
+        cisco_client_id = self.cc.get('cisco', 'client_id')
+        cisco_client_secret = self.cc.get('cisco', 'client_secret')
+        meraki_api_key = self.cc.get('cisco', 'meraki_api_key')
         return {
             'url': cisco_url,
-            'api_key': cisco_api_key,
-            'api_secret': cisco_api_secret
+            'url2': cisco_url_2,
+            'client_id': cisco_client_id,
+            'client_secret': cisco_client_secret,
+            'meraki_api_key': meraki_api_key
         }
 
     def __get_ibm_cfg(self):
