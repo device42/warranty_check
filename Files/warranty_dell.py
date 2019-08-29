@@ -34,7 +34,6 @@ class Dell(WarrantyBase, object):
             print '\t[+] Checking warranty info for "%s"' % inline_serials
         timeout = 10
 
-
         # making sure the warranty also gets updated if the serial has been changed by decom lifecycle process
         incoming_serials = inline_serials.split(',')
         inline_serials = []

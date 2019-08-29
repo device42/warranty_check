@@ -5,7 +5,7 @@ from Files.shared import Config, Device42rest
 from Files.warranty_dell import Dell
 from Files.warranty_hp import Hp
 from Files.warranty_ibm_lenovo import IbmLenovo
-from Files.warranty_cisco import Cisco
+from Files.warranty_meraki import Cisco
 
 
 def get_hardware_by_vendor(name):
@@ -55,13 +55,10 @@ def get_vendor_api(name):
         }
         api = IbmLenovo(vendor, ibm_lenovo_params)
 
-    elif vendor == "cisco":
+    elif vendor == "meraki":
         cisco_params = {
             'url': current_cfg['url'],
-            'url2': current_cfg['url2'],
-            'client_id': current_cfg['client_id'],
-            'client_secret': current_cfg['client_secret'],
-            'meraki_api_key': current_cfg['meraki_api_key'],
+            'api_key': current_cfg['api_key'],
             'd42_rest': d42_rest
         }
         api = Cisco(cisco_params)
@@ -161,8 +158,8 @@ if __name__ == '__main__':
         APPS_ROW.append('ibm')
     if discover['lenovo']:
         APPS_ROW.append('lenovo')
-    if discover['cisco']:
-        APPS_ROW.append('cisco')
+    if discover['meraki']:
+        APPS_ROW.append('meraki')
 
     for vendor in APPS_ROW:
         print '\n[+] %s section' % vendor
