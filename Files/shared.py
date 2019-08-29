@@ -7,7 +7,7 @@ import ConfigParser
 
 
 APP_DIR = os.path.abspath(os.path.dirname(__file__))
-CONFIGFILE = os.path.join(APP_DIR, 'warranty.cfg')
+CONFIGFILE = os.path.join(APP_DIR, 'warranty.cfg.example')
 CC = ConfigParser.RawConfigParser()
 
 # check file
@@ -18,7 +18,7 @@ if os.path.isfile(CONFIGFILE):
     ORDER_NO_TYPE = CC.get('other', 'order_no_type')
 else:
     print '\n[!] Cannot find config file!'
-    print '\tDid you rename warranty.cfg to warranty.cfg ?'
+    print '\tDid you rename warranty.cfg.example to warranty.cfg ?'
     print '\tExiting...'
     sys.exit()
 
