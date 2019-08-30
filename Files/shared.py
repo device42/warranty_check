@@ -7,7 +7,7 @@ import ConfigParser
 
 
 APP_DIR = os.path.abspath(os.path.dirname(__file__))
-CONFIGFILE = os.path.join(APP_DIR, 'warranty.cfg.example')
+CONFIGFILE = os.path.join(APP_DIR, 'warranty.cfg')
 CC = ConfigParser.RawConfigParser()
 
 # check file
