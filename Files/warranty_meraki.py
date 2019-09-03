@@ -123,7 +123,7 @@ class Meraki(WarrantyBase, object):
                     self.d42_rest.upload_data(data)
                     data.clear()
 
-        # Debug
+        # Debug Start
         """
         test_data = {}
         test_data.update({'order_no': self.generate_random_order_no()})
@@ -166,6 +166,7 @@ class Meraki(WarrantyBase, object):
                 self.d42_rest.upload_data(test_data)
                 test_data.clear()
         """
+        # Debug End
 
     # keeps track of the last time api call was made to ensure we dont get a 'too many requests' status code
     # also keeps track of the number of requests being made because the api allows 5 requests a second
