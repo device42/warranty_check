@@ -5,7 +5,7 @@ from Files.shared import Config, Device42rest
 from Files.warranty_dell import Dell
 from Files.warranty_hp import Hp
 from Files.warranty_ibm_lenovo import IbmLenovo
-from Files.warranty_meraki import Cisco
+from Files.warranty_meraki import Meraki
 
 
 def get_hardware_by_vendor(name):
@@ -56,12 +56,12 @@ def get_vendor_api(name):
         api = IbmLenovo(vendor, ibm_lenovo_params)
 
     elif vendor == "meraki":
-        cisco_params = {
+        meraki_params = {
             'url': current_cfg['url'],
             'api_key': current_cfg['api_key'],
             'd42_rest': d42_rest
         }
-        api = Cisco(cisco_params)
+        api = Meraki(meraki_params)
 
     return api
 

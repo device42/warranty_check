@@ -15,10 +15,10 @@ except:
     pass
 
 
-class Cisco(WarrantyBase, object):
+class Meraki(WarrantyBase, object):
 
     def __init__(self, params):
-        super(Cisco, self).__init__()
+        super(Meraki, self).__init__()
         self.url = params['url']
         self.api_key = params['api_key']
         self.debug = DEBUG
@@ -36,6 +36,12 @@ class Cisco(WarrantyBase, object):
         self.devices_endpoint = "/devices"
         self.license_state_endpoint = "/licenseState"
 
+        # API Call Throttler
+        self.API_call_limit = 1
+        self.API_execution_delay = 5
+        self.API_requests_made = 1
+        self.last_api_call = None
+
     def run_warranty_check(self, inline_serials, retry=True):
         # Every Time we run a warranty check task preprocess data so that remainder of warranty check is done locally
         licence_states, organization_devices, all_devices = self.pre_process_meraki_data()
@@ -47,9 +53,6 @@ class Cisco(WarrantyBase, object):
         # making sure the warranty also gets updated if the serial has been changed by decom lifecycle process
         global full_serials
         full_serials = {}
-
-        if self.debug is True:
-            print 'Checking warranty info for "%s"' % inline_serials
 
         inline_serials = inline_serials.split(',')
 
@@ -120,7 +123,7 @@ class Cisco(WarrantyBase, object):
                     self.d42_rest.upload_data(data)
                     data.clear()
 
-        # TODO: Debug
+        # Debug
         """
         test_data = {}
         test_data.update({'order_no': self.generate_random_order_no()})
@@ -164,6 +167,21 @@ class Cisco(WarrantyBase, object):
                 test_data.clear()
         """
 
+    # keeps track of the last time api call was made to ensure we dont get a 'too many requests' status code
+    # also keeps track of the number of requests being made because the api allows 5 requests a second
+    def meraki_request_throttler(self):
+
+        if self.last_api_call is not None:
+            if(datetime.utcnow() - self.last_api_call).total_seconds() < self.API_call_limit:
+                if self.API_requests_made % 5 == 0:
+                    if self.debug is True:
+                        print "Meraki request throttler delaying requests for 5 seconds"
+                    time.sleep(self.API_execution_delay)
+
+        # record the new last request time and increment the number of requests made by one
+        self.last_api_call = datetime.utcnow()
+        self.API_requests_made += 1
+
     # Pre process uses Cisco Meraki API to gather license information contained within Meraki. Since licence
     # information is associated with an organization and not a device we work backwards by getting all the organizations
     # associated with an API key. We then obtain the networks associated with each organization and then finally the
@@ -172,7 +190,6 @@ class Cisco(WarrantyBase, object):
     def pre_process_meraki_data(self, retry=True, timeout=15):
         # gets a combined list of all the organization ids associated with the meraki access token
         all_organization_ids = self.get_all_organizations(retry, timeout)
-
         if all_organization_ids is None:
             return None
 
@@ -186,7 +203,6 @@ class Cisco(WarrantyBase, object):
         # gets all the devices in each organization and creates a dictionary to find what organization each device is a
         # part of --> all_devices = all_organization_devices{serial_number: organization_id, serial_number: ...}
         # all organizations --> {organization_id: serial_number, serial_number, sserial_number}
-
         all_organization_devices, all_devices = self.get_all_device_serial_numbers(all_organization_ids, retry, timeout)
 
         if all_organization_devices is None:
@@ -232,10 +248,7 @@ class Cisco(WarrantyBase, object):
             # with key organization_id and value days remaining on licence
             if 'expirationDate' in result:
                 if result['expirationDate'] == "N/A":
-                    if result['status'] == 'License Required':
-                        days_remaining = datetime.utcnow().strftime("%Y-%m-%d")
-                    else:
-                        days_remaining = datetime.utcnow().strftime("%Y-%m-%d")
+                    days_remaining = datetime.utcnow().strftime("%Y-%m-%d")
                 else:
                     days_remaining = self.meraki_date_parser(result['expirationDate'])  # TODO make sure this works
 
@@ -305,24 +318,34 @@ class Cisco(WarrantyBase, object):
 
         return all_organizations, all_devices
 
-    # TODO: add rate limit handling
+    """
+    Status Codes
+    400: Bad Request- You did something wrong, e.g. a malformed request or missing parameter.
+    403: Forbidden- You don't have permission to do that.
+    404: Not found- No such URL, or you don't have access to the API or organization at all. 
+    429: Too Many Requests- You submitted more than 5 calls in 1 second to an Organization, triggering rate limiting. 
+    """
     def process_get_response(self, resp, retry):
+
+        self.meraki_request_throttler()
+
         msg = 'Status code: %s' % str(resp.status_code)
 
         if str(resp.status_code) == '429' or str(resp.status_code) == '404':
             print 'HTTP error. Message was: %s' % msg
-            print 'waiting for 30 seconds to let the api server calm down'
-            # suspecting blockage due to to many api calls. could also be an incorrect api key
+            print 'waiting for 10 seconds to let the api server calm down'
+            # suspecting blockage due to to many api calls or missing organization privileges
             # wait 10 seconds and continue
             time.sleep(10)
             if retry:
-                print 'Retry'
+                print 'Retrying...'
                 self.pre_process_meraki_data(False)
             else:
                 return None
-        elif str(resp.status_code) == '500':
+        elif str(resp.status_code) == '400' or str(resp.status_code) == '403':
+            # bad request or incorrect API key
             print 'HTTP error. Message was: %s' % msg
-            print resp.text
+            print 'Malformed request or incorrect API Key'
             return None
         else:
             result = resp.json()
