@@ -38,12 +38,14 @@ class Config:
             res = self.__get_dell_cfg()
         elif source == 'hp':
             res = self.__get_hp_cfg()
-        elif source == 'meraki':
-            res = self.__get_meraki_cfg()
         elif source == 'ibm':
             res = self.__get_ibm_cfg()
         elif source == 'lenovo':
             res = self.__get_lenovo_cfg()
+        elif source == 'cisco':
+            res = self.__get_cisco_cfg()
+        elif source == 'meraki':
+            res = self.__get_meraki_cfg()
         else:
             print '\n[!] Error. Unknown source "%s".\n\tExiting...\n' % source
             sys.exit()
