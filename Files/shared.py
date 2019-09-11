@@ -42,8 +42,6 @@ class Config:
             res = self.__get_ibm_cfg()
         elif source == 'lenovo':
             res = self.__get_lenovo_cfg()
-        elif source == 'cisco':
-            res = self.__get_cisco_cfg()
         elif source == 'meraki':
             res = self.__get_meraki_cfg()
         else:
@@ -98,17 +96,6 @@ class Config:
             'url': hp_url,
             'api_key': hp_api_key,
             'api_secret': hp_api_secret
-        }
-
-    def __get_cisco_cfg(self):
-        # Cisco --------------------------------------------
-        cisco_url = self.cc.get('cisco', 'url')
-        cisco_client_id = self.cc.get('cisco', 'client_id')
-        cisco_client_secret = self.cc.get('cisco', 'client_secret')
-        return {
-            'url': cisco_url,
-            'client_id': cisco_client_id,
-            'client_secret': cisco_client_secret,
         }
 
     def __get_ibm_cfg(self):

@@ -32,11 +32,6 @@ url2 = http://support.lenovo.com/us/en/products
 url = http://support.lenovo.com/services/us/en/ContentService/GetProducts
 url2 = http://support.lenovo.com/us/en/products
 
-[cisco]
-url = https://api.cisco.com
-client_id =
-client_secret =
-
 [meraki]
 api_key = 
 url = https://api.meraki.com/api/v0

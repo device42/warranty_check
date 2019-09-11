@@ -247,6 +247,9 @@ class Meraki(WarrantyBase, object):
 
             # Checks to see if expiration date field is valid and converts it to days remaining, adds it to a dictionary
             # with key organization_id and value days remaining on licence
+            if self.debug is True:
+                print '\t\t\t[+] ' + str(result)
+
             if 'expirationDate' in result:
                 if result['expirationDate'] == "N/A":
                     days_remaining = datetime.utcnow().strftime("%Y-%m-%d")
@@ -265,7 +268,7 @@ class Meraki(WarrantyBase, object):
         }
 
         if self.debug is True:
-            print '\t\t[+] Getting all organization IDs '
+            print '\t\t[!] Getting all organization IDs '
 
         try:
             resp = requests.get(self.url + self.organization_endpoint, headers=headers, timeout=timeout)
@@ -282,6 +285,9 @@ class Meraki(WarrantyBase, object):
             if 'id' in organization:
                 all_organization_ids.append(organization['id'])
 
+        if self.debug is True:
+            print '\t\t\t[+] ' + str(result)
+
         return all_organization_ids
 
     def get_all_device_serial_numbers(self, all_organization_ids, retry, timeout):
@@ -295,7 +301,7 @@ class Meraki(WarrantyBase, object):
         }
 
         if self.debug is True:
-            print '\t\t[+] Getting all device serial numbers '
+            print '\t\t[!] Getting all device serial numbers '
 
         for organization_id in all_organization_ids:
             try:
@@ -316,6 +322,9 @@ class Meraki(WarrantyBase, object):
 
             # adds a list of all the devices in an organization to a dictionary
             all_organizations[organization_id] = result
+
+            if self.debug is True:
+                print '\t\t\t[+] ' + str(all_devices)
 
         return all_organizations, all_devices
 

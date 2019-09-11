@@ -1,6 +1,5 @@
 ## 11.09.2018
 - Added Meraki device support
-- Started Cisco warranty check
 
 ## 30.04.2017
 - service type field has been extended in version 13.1.0.
