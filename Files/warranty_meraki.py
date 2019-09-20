@@ -316,7 +316,5 @@ class Meraki(WarrantyBase, object):
         date_time_object = datetime.strptime(meraki_date, '%b %d, %Y UTC')
         formatted_date = date_time_object.strftime('%Y-%m-%d')
 
-        print formatted_date
-
         return formatted_date
 
