@@ -1,9 +1,7 @@
 import copy
-from datetime import datetime, timedelta
-import sys
+from datetime import datetime
+from time import strptime
 import time
-import random
-import json
 import requests
 
 from shared import DEBUG, RETRY, ORDER_NO_TYPE, left
@@ -98,7 +96,6 @@ class Meraki(WarrantyBase, object):
                 # warranty - Note: Meraki product warranties are a combined average so there is no way of knowing start
                 # date for a particular device
                 data.update({'line_contract_type': 'Warranty'})
-                data.update({'line_start_date': '2006-01-01'})
                 data.update({'line_end_date': license_expiration})
 
                 all_data.append(copy.deepcopy(data))
@@ -122,51 +119,6 @@ class Meraki(WarrantyBase, object):
                 except KeyError:
                     self.d42_rest.upload_data(data)
                     data.clear()
-
-        # Debug Start
-        """
-        test_data = {}
-        test_data.update({'order_no': self.generate_random_order_no()})
-        test_data.update({'completed': 'yes'})
-        test_data.update({'vendor': 'Meraki'})
-        test_data.update({'line_device_serial_nos': 'FOC1252W6EW'})
-        test_data.update({'line_type': 'contract'})
-        test_data.update({'line_contract_type': 'Warranty'})
-        test_data.update({'line_item_type': 'device'})
-        test_data.update({'line_completed': 'yes'})
-
-        # warranty
-        test_data.update({'line_start_date': '2006-01-01'})
-        test_data.update({'line_end_date': '2019-08-28'})
-        all_data.append(copy.deepcopy(test_data))
-
-        if self.debug is True:
-            print
-            print 'Test Data'
-            print test_data
-            print
-
-            # Easter Egg: start date in hash is the year meraki was founded
-            hasher = "FOC1252W6EW" + "2006-01-01" + "2019-08-28"
-
-            try:
-                d_purchase_id, d_order_no, d_line_no, d_contractid, d_start, d_end, forcedupdate = purchases[hasher]
-
-                if forcedupdate:
-                    test_data['purchase_id'] = d_purchase_id
-                    test_data.pop('order_no')
-                    raise KeyError
-
-                # check for duplicate state
-                if d_start == "2006-01-01" and d_end == license_expiration:
-                    print '\t[!] Duplicate found. Purchase ' \
-                          'for SKU "%s" with end date "%s" ' \
-                          'is already uploaded' % (serial_number, license_expiration)
-            except KeyError:
-                self.d42_rest.upload_data(test_data)
-                test_data.clear()
-        """
-        # Debug End
 
     # keeps track of the last time api call was made to ensure we dont get a 'too many requests' status code
     # also keeps track of the number of requests being made because the api allows 5 requests a second
@@ -292,8 +244,6 @@ class Meraki(WarrantyBase, object):
 
     def get_all_device_serial_numbers(self, all_organization_ids, retry, timeout):
         all_organizations = {}
-        devices_in_network = []
-
         all_devices = {}
 
         headers = {
@@ -363,14 +313,10 @@ class Meraki(WarrantyBase, object):
 
     @staticmethod
     def meraki_date_parser(meraki_date):
-        meraki_date.replace(',', '')
-        date_items = meraki_date.split(' ')
+        date_time_object = datetime.strptime(meraki_date, '%b %d, %Y UTC')
+        formatted_date = date_time_object.strftime('%Y-%m-%d')
 
-        month = date_items[0]
-        day = date_items[1]
-        year = date_items[2]
+        print formatted_date
 
-        d42_date_format = year + '-' + month + '-' + day
-
-        return d42_date_format
+        return formatted_date
 
