@@ -38,12 +38,12 @@ class Config:
             res = self.__get_dell_cfg()
         elif source == 'hp':
             res = self.__get_hp_cfg()
-        elif source == 'cisco':
-            res = self.__get_cisco_cfg()
         elif source == 'ibm':
             res = self.__get_ibm_cfg()
         elif source == 'lenovo':
             res = self.__get_lenovo_cfg()
+        elif source == 'meraki':
+            res = self.__get_meraki_cfg()
         else:
             print '\n[!] Error. Unknown source "%s".\n\tExiting...\n' % source
             sys.exit()
@@ -67,12 +67,14 @@ class Config:
         hp = self.cc.getboolean('discover', 'hp')
         ibm = self.cc.getboolean('discover', 'ibm')
         lenovo = self.cc.getboolean('discover', 'lenovo')
+        meraki = self.cc.getboolean('discover', 'meraki')
         forcedupdate = self.cc.getboolean('discover', 'forcedupdate')
         return {
             'dell': dell,
             'hp': hp,
             'ibm': ibm,
             'lenovo': lenovo,
+            'meraki': meraki,
             'forcedupdate': forcedupdate
         }
 
@@ -96,17 +98,6 @@ class Config:
             'api_secret': hp_api_secret
         }
 
-    def __get_cisco_cfg(self):
-        # Cisco --------------------------------------------
-        cisco_url = self.cc.get('cisco', 'url')
-        cisco_api_key = self.cc.get('cisco', 'api_key')
-        cisco_api_secret = self.cc.get('cisco', 'api_secret')
-        return {
-            'url': cisco_url,
-            'api_key': cisco_api_key,
-            'api_secret': cisco_api_secret
-        }
-
     def __get_ibm_cfg(self):
         # IBM  ---------------------------------------------
         ibm_url = self.cc.get('ibm', 'url')
@@ -123,6 +114,15 @@ class Config:
         return {
             'url': lenovo_url,
             'url2': lenovo_url2
+        }
+
+    def __get_meraki_cfg(self):
+        # Meraki ---------------------------------------------
+        meraki_url = self.cc.get('meraki', 'url')
+        meraki_api_key = self.cc.get('meraki', 'api_key')
+        return {
+            'url': meraki_url,
+            'api_key': meraki_api_key
         }
 
 

@@ -1,3 +1,6 @@
+## 11.09.2018
+- Added Meraki device support
+
 ## 30.04.2017
 - service type field has been extended in version 13.1.0.
 - Added an option to force updating the line items. Needed as the Service Type does not get updated otherwise as the contents of the field can't be checked via the api to see if it needs a change.

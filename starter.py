@@ -5,7 +5,7 @@ from Files.shared import Config, Device42rest
 from Files.warranty_dell import Dell
 from Files.warranty_hp import Hp
 from Files.warranty_ibm_lenovo import IbmLenovo
-
+from Files.warranty_meraki import Meraki
 
 def get_hardware_by_vendor(name):
     # Getting the hardware models, so we specifically target the manufacturer systems registered
@@ -54,6 +54,14 @@ def get_vendor_api(name):
         }
         api = IbmLenovo(vendor, ibm_lenovo_params)
 
+    elif vendor == "meraki":
+        meraki_params = {
+            'url': current_cfg['url'],
+            'api_key': current_cfg['api_key'],
+            'd42_rest': d42_rest
+        }
+        api = Meraki(meraki_params)
+
     return api
 
 
@@ -98,6 +106,7 @@ def loader(name, api, d42):
         else:
             print '\n[!] Finished'
             break
+
 
 if __name__ == '__main__':
 
@@ -148,6 +157,8 @@ if __name__ == '__main__':
         APPS_ROW.append('ibm')
     if discover['lenovo']:
         APPS_ROW.append('lenovo')
+    if discover['meraki']:
+        APPS_ROW.append('meraki')
 
     for vendor in APPS_ROW:
         print '\n[+] %s section' % vendor
