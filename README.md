@@ -10,7 +10,7 @@ This script checks warranty status for Dell, HP, IBM, Lenovo and Meraki manufact
 In order for this script to check warranty status of the device, the device must have hardware model and serial number entered in Device42. Dell Warranty Status API key must be acquired as well.
 - Device42 Hardware model must have "Dell", "Hewlett Packard", "IBM", "LENOVO" or "Meraki" in it's manufacturer data.
 - Device42 Serial number must be set to "Dell", "Hewlett Packard", "IBM", "LENOVO" or "Meraki" device serial number.
-- Dell's API key can be obtained by filling the on-boarding form. New and existing API users will need to register an account with TechDirect. Please check: http://en.community.dell.com/dell-groups/supportapisgroup/
+- Dell's client id and client secret can be obtained by filling the on-boarding form. New and existing API users will need to register an account with TechDirect. Please check: http://en.community.dell.com/dell-groups/supportapisgroup/
 - HP's API key can be obtained by filling the on-boarding form. Please, follow the instructions from here: https://developers.hp.com/css-enroll
 - Merakis API key can be obtained by going to the organization > settings page on the Meraki dashboard. Ensure that the enable access to API checkbox is selected then go to your profile to generate the API key. Please check https://developer.cisco.com/meraki/api/#/rest/getting-started/what-can-the-api-be-used-for
 ## Plans
@@ -43,3 +43,6 @@ In order for this script to check warranty status of the device, the device must
 * requests module required
 * Script runs on Linux and Windows
 * Python 2.7
+
+## Updates
+10/10/19 - Updated Dell warranty sync to use version 5 of their API (OAuth2.0), Version 4 EOL is scheduled for 12/15/19, Please update before this date
