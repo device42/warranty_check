@@ -32,7 +32,8 @@ def get_vendor_api(name):
     if vendor == 'dell':
         dell_params = {
             'url': current_cfg['url'],
-            'api_key': current_cfg['api_key'],
+            'client_id': current_cfg['client_id'],
+            'client_secret': current_cfg['client_secret'],
             'd42_rest': d42_rest
         }
         api = Dell(dell_params)

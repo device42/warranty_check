@@ -81,10 +81,12 @@ class Config:
     def __get_dell_cfg(self):
         # Dell ---------------------------------------------
         dell_url = self.cc.get('dell', 'url')
-        dell_api_key = self.cc.get('dell', 'api_key')
+        dell_client_id = self.cc.get('dell', 'client_id')
+        dell_client_secret = self.cc.get('dell', 'client_secret')
         return {
             'url': dell_url,
-            'api_key': dell_api_key
+            'client_id': dell_client_id,
+            'client_secret': dell_client_secret
         }
 
     def __get_hp_cfg(self):
