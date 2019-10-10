@@ -126,8 +126,6 @@ class Dell(WarrantyBase, object):
                     return None
             else:
                 result = resp.json()
-                print json.dumps(result)
-                print
                 return result
         except requests.RequestException as e:
             self.error_msg(e)
@@ -150,10 +148,6 @@ class Dell(WarrantyBase, object):
                         print e
 
             else:
-                # saw this order number code, did not see this in the response with test devices,
-                # but leaving it here in case there is a product that does return this information
-                # if self.order_no == 'vendor':
-                #    order_no = item['orderNumber']
                 if self.order_no == 'common':
                     order_no = self.common
                 else:
@@ -167,7 +161,7 @@ class Dell(WarrantyBase, object):
                     ship_date = item['shipDate'].split('T')[0]
                     try:
                         product_id = item['ProductId']
-                    except:
+                    except KeyError:
                         product_id = 'notspecified'
 
                     data.update({'order_no': order_no})
@@ -207,7 +201,7 @@ class Dell(WarrantyBase, object):
                         # There's a max 64 character limit on the line service type field in Device42 (version 13.1.0)
                         service_level_description = left(sub_item['serviceLevelDescription'], 64)
                         data.update({'line_service_type': service_level_description})
-                    except:
+                    except KeyError:
                         pass
 
                     start_date = sub_item['startDate'].split('T')[0]
