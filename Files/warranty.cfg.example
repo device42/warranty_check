@@ -17,7 +17,7 @@ forcedupdate = False
 # set the client_id and client_secret provided by Cisco
 client_id =
 client_secret =
-url =
+url = https://api.cisco.com/sn2info/v2/coverage/summary/serial_numbers
 
 [dell]
 # set api_key as provided by Dell
