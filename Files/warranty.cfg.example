@@ -13,6 +13,12 @@ lenovo = True
 meraki = True
 forcedupdate = False
 
+[cisco]
+# set the client_id and client_secret provided by Cisco
+client_id =
+client_secret =
+url =
+
 [dell]
 # set api_key as provided by Dell
 client_id =

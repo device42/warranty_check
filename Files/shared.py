@@ -78,6 +78,17 @@ class Config:
             'forcedupdate': forcedupdate
         }
 
+    def __get_cisco_cfg(self):
+        # Cisco ---------------------------------------------
+        cisco_url = self.cc.get('cisco', 'url')
+        cisco_client_id = self.cc.get('cisco', 'client_id')
+        cisco_client_secret = self.cc.get('cisco', 'client_secret')
+        return {
+            'url': cisco_url,
+            'client_id': cisco_client_id,
+            'client_secret': cisco_client_secret
+        }
+
     def __get_dell_cfg(self):
         # Dell ---------------------------------------------
         dell_url = self.cc.get('dell', 'url')

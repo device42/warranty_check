@@ -2,10 +2,12 @@
 import sys
 
 from Files.shared import Config, Device42rest
+from Files.warranty_cisco import Cisco
 from Files.warranty_dell import Dell
 from Files.warranty_hp import Hp
 from Files.warranty_ibm_lenovo import IbmLenovo
 from Files.warranty_meraki import Meraki
+
 
 def get_hardware_by_vendor(name):
     # Getting the hardware models, so we specifically target the manufacturer systems registered
@@ -29,7 +31,16 @@ def get_vendor_api(name):
     current_cfg = cfg.get_config(name)
     api = None
 
-    if vendor == 'dell':
+    if vendor == 'cisco':
+        cisco_params = {
+            'url': current_cfg['url'],
+            'client_id': current_cfg['client_id'],
+            'client_secret': current_cfg['client_secret'],
+            'd42_rest': d42_rest
+        }
+        api = Cisco(cisco_params)
+
+    elif vendor == 'dell':
         dell_params = {
             'url': current_cfg['url'],
             'client_id': current_cfg['client_id'],
@@ -150,6 +161,8 @@ if __name__ == '__main__':
                                     purchases[hasher] = [purchase_id, order_no, line_no, contractid, start, end, discover['forcedupdate']]
 
     APPS_ROW = []
+    if discover['cisco']:
+        APPS_ROW.append('cisco')
     if discover['dell']:
         APPS_ROW.append('dell')
     if discover['hp']:
