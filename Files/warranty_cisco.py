@@ -5,13 +5,16 @@ import random
 import requests
 from datetime import datetime, timedelta
 
-from shared import DEBUG, RETRY, ORDER_NO_TYPE, left
+from shared import DEBUG, RETRY, ORDER_NO_TYPE, left, Device42rest
 from warranty_abstract import WarrantyBase
 
 try:
     requests.packages.urllib3.disable_warnings()
 except:
     pass
+
+full_serials = {'SAL09232Q0Z': 'SAL09232Q0Z', '32964768': '32964768', 'SWCAT1239A0CJ': 'SWCAT1239A0CJ',
+                'FOC0903N5J9': 'FOC0903N5J9', 'INM07501EC3': 'INM07501EC3', }
 
 
 class Cisco(WarrantyBase, object):
@@ -34,8 +37,7 @@ class Cisco(WarrantyBase, object):
         self.expires_at = None
         self.access_token = None
 
-        # OAth 2.0
-
+    # OAth 2.0
     def get_access_token(self, client_id, client_secret):
         access_token_request_url = "https://cloudsso.cisco.com/as/token.oauth2"
 
@@ -149,72 +151,70 @@ class Cisco(WarrantyBase, object):
                     else:
                         order_no = self.generate_random_order_no()
 
-                    serial = device['parent_sr_no']
+                    serial = device['sr_no']
 
-                    if "orderable_pid_list" in device:
-                        for orderable_item in device["orderable_pid_list"]:
-                            data.clear()
+                    data.clear()
 
-                            data.update({'order_no': order_no})
-                            data.update({'completed': 'yes'})
+                    data.update({'order_no': order_no})
+                    data.update({'completed': 'yes'})
 
-                            data.update({'vendor': 'Cisco'})
-                            data.update({'line_device_serial_nos': full_serials[serial]})
-                            data.update({'line_type': 'contract'})
-                            data.update({'line_item_type': 'device'})
-                            data.update({'line_completed': 'yes'})
+                    data.update({'vendor': 'Cisco'})
+                    data.update({'line_device_serial_nos': full_serials[serial]})
+                    data.update({'line_type': 'contract'})
+                    data.update({'line_item_type': 'device'})
+                    data.update({'line_completed': 'yes'})
 
-                            try:
-                                line_contract_id = orderable_item['service_contract_number']
-                            except KeyError:
-                                line_contract_id = "Not Available"
+                    try:
+                        line_contract_id = device['service_contract_number']
+                    except KeyError:
+                        line_contract_id = "Not Available"
 
-                            data.update({'line_notes': line_contract_id})
-                            data.update({'line_contract_id': line_contract_id})
+                    data.update({'line_notes': line_contract_id})
+                    data.update({'line_contract_id': line_contract_id})
 
-                            try:
-                                warranty_type = orderable_item['warranty_type']
-                            except KeyError:
-                                warranty_type = "Service"
+                    try:
+                        warranty_type = device['warranty_type']
+                    except KeyError:
+                        warranty_type = "Service"
 
-                            data.update({'line_contract_type': warranty_type})
+                    data.update({'line_contract_type': warranty_type})
 
-                            if warranty_type == 'Service':
-                                # Skipping the services, only want the warranties
-                                continue
+                    if warranty_type == 'Service':
+                        # Skipping the services, only want the warranties
+                        continue
 
-                            try:
-                                # max 64 character limit on the line service type field in Device42 (version 13.1.0)
-                                service_line_description = left(orderable_item['service_line_descr'], 64)
-                                data.update({'line_service_type': service_line_description})
-                            except KeyError:
-                                pass
+                    try:
+                        # max 64 character limit on the line service type field in Device42 (version 13.1.0)
+                        service_line_description = left(device['service_line_descr'], 64)
+                        data.update({'line_service_type': service_line_description})
+                    except KeyError:
+                        pass
 
-                            start_date = "2019-01-01"
-                            end_date = orderable_item['warranty_end_date']
-                            data.update({'line_end_date': end_date})
+                    start_date = "2019-01-01"
+                    end_date = device['warranty_end_date']
+                    data.update({'line_end_date': end_date})
 
-                            # Compare warranty dates by serial, contract_id, start date and end date
-                            # Start date is not provided in request response so the date is simply used for hasher
-                            hasher = serial + line_contract_id + start_date + end_date
+                    # Compare warranty dates by serial, contract_id, start date and end date
+                    # Start date is not provided in request response so the date is simply used for hasher
+                    hasher = serial + line_contract_id + start_date + end_date
 
-                            try:
-                                d_purchase_id, d_order_no, d_line_no, d_contractid, d_start, d_end, forcedupdate = \
-                                    purchases[hasher]
+                    try:
+                        d_purchase_id, d_order_no, d_line_no, d_contractid, d_start, d_end, forcedupdate = \
+                            purchases[hasher]
 
-                                if forcedupdate:
-                                    data['purchase_id'] = d_purchase_id
-                                    data.pop('order_no')
-                                    raise KeyError
+                        if forcedupdate:
+                            data['purchase_id'] = d_purchase_id
+                            data.pop('order_no')
+                            raise KeyError
 
-                                # check for duplicate state
-                                if d_contractid == line_contract_id and d_start == start_date and d_end == end_date:
-                                    print '\t[!] Duplicate found. Purchase ' \
-                                          'for SKU "%s" and "%s" with end date "%s" ' \
-                                          'order_id: %s and line_no: %s' % (
-                                              serial, line_contract_id, end_date, d_purchase_id, d_line_no)
-                            except KeyError:
-                                raise KeyError
+                        # check for duplicate state
+                        if d_contractid == line_contract_id and d_start == start_date and d_end == end_date:
+                            print '\t[!] Duplicate found. Purchase ' \
+                                  'for SKU "%s" and "%s" with end date "%s" ' \
+                                  'order_id: %s and line_no: %s' % (
+                                      serial, line_contract_id, end_date, d_purchase_id, d_line_no)
+                    except KeyError:
+                        raise KeyError
 
                 except KeyError:
                     self.d42_rest.upload_data(data)
