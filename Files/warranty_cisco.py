@@ -5,16 +5,13 @@ import random
 import requests
 from datetime import datetime, timedelta
 
-from shared import DEBUG, RETRY, ORDER_NO_TYPE, left, Device42rest
+from shared import DEBUG, RETRY, ORDER_NO_TYPE, left
 from warranty_abstract import WarrantyBase
 
 try:
     requests.packages.urllib3.disable_warnings()
 except:
     pass
-
-full_serials = {'SAL09232Q0Z': 'SAL09232Q0Z', '32964768': '32964768', 'SWCAT1239A0CJ': 'SWCAT1239A0CJ',
-                'FOC0903N5J9': 'FOC0903N5J9', 'INM07501EC3': 'INM07501EC3', }
 
 
 class Cisco(WarrantyBase, object):
