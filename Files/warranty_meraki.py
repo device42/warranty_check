@@ -100,8 +100,7 @@ class Meraki(WarrantyBase, object):
 
                 all_data.append(copy.deepcopy(data))
 
-                # Easter Egg: start date in hash is the year meraki was founded
-                hasher = serial_number + "2006-01-01" + license_expiration
+                hasher = serial_number + "0001-01-01" + license_expiration
 
                 try:
                     d_purchase_id, d_order_no, d_line_no, d_contractid, d_start, d_end, forcedupdate = purchases[hasher]
@@ -112,7 +111,7 @@ class Meraki(WarrantyBase, object):
                         raise KeyError
 
                     # check for duplicate state
-                    if d_start == "2006-01-01" and d_end == license_expiration:
+                    if d_start == "0001-01-01" and d_end == license_expiration:
                         print '\t[!] Duplicate found. Purchase ' \
                               'for SKU "%s" with end date "%s" ' \
                               'is already uploaded' % (serial_number, license_expiration)
@@ -206,7 +205,7 @@ class Meraki(WarrantyBase, object):
                 if result['expirationDate'] == "N/A":
                     days_remaining = datetime.utcnow().strftime("%Y-%m-%d")
                 else:
-                    days_remaining = self.meraki_date_parser(result['expirationDate'])  # TODO make sure this works
+                    days_remaining = self.meraki_date_parser(result['expirationDate'])
 
                 all_license_states[organization_id] = days_remaining
 

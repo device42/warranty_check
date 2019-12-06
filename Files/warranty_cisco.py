@@ -187,7 +187,7 @@ class Cisco(WarrantyBase, object):
                     except KeyError:
                         pass
 
-                    start_date = "2019-01-01"
+                    start_date = "0001-01-01"
                     end_date = device['warranty_end_date']
                     data.update({'line_end_date': end_date})
 

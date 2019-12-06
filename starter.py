@@ -149,10 +149,11 @@ if __name__ == '__main__':
                     line_no = line_item.get('line_no')
                     devices = line_item.get('devices')
                     contractid = line_item.get('line_notes')
-                    start = line_item.get('line_start_date')
-                    end = line_item.get('line_end_date')
+                    # POs with no start and end dates will now be included and given a hasher key with date min and max
+                    start = line_item.get('line_start_date') if line_item.get('line_start_date') is not None else '0001-01-01'
+                    end = line_item.get('line_end_date') if line_item.get('line_end_date') is not None else '9999-12-31'
 
-                    if start and end and devices:
+                    if devices:
                         for device in devices:
                             if 'serial_no' in device:
                                 serial = device['serial_no']

@@ -3,7 +3,8 @@ import sys
 import time
 import random
 import requests
-from datetime import datetime, timedelta
+import datetime
+from datetime import timedelta, datetime
 
 from shared import DEBUG, RETRY, ORDER_NO_TYPE, left
 from warranty_abstract import WarrantyBase
@@ -158,15 +159,25 @@ class Dell(WarrantyBase, object):
                 # We need check per warranty service item
                 for sub_item in warranties:
                     data.clear()
-                    ship_date = item['shipDate'].split('T')[0]
+
+                    try:
+                        if 'shipDate' in item:
+                            ship_date = item['shipDate'].split('T')[0]
+                        else:
+                            ship_date = None
+                    except AttributeError:
+                        ship_date = None
+
                     try:
                         product_id = item['ProductId']
                     except KeyError:
                         product_id = 'notspecified'
 
                     data.update({'order_no': order_no})
+
                     if ship_date:
                         data.update({'po_date': ship_date})
+
                     data.update({'completed': 'yes'})
 
                     data.update({'vendor': 'Dell Inc.'})
@@ -176,6 +187,7 @@ class Dell(WarrantyBase, object):
                     data.update({'line_completed': 'yes'})
 
                     line_contract_id = sub_item['itemNumber']
+
                     data.update({'line_notes': line_contract_id})
                     data.update({'line_contract_id': line_contract_id})
 
@@ -183,16 +195,20 @@ class Dell(WarrantyBase, object):
                     # so notes is now used for identification
                     # Mention this to device42
 
-                    service_level_group = sub_item['serviceLevelGroup']
+                    if 'serviceLevelGroup' in sub_item:
+                        service_level_group = sub_item['serviceLevelGroup']
+                    else:
+                        service_level_group = None
+
                     if service_level_group == -1 or service_level_group == 5 or service_level_group == 8 or service_level_group == 99999:
                         contract_type = 'Warranty'
-                    elif service_level_group == 8 and 'compellent' in product_id:
-                        contract_type = 'Service'
                     elif service_level_group == 11 and 'compellent' in product_id:
                         contract_type = 'Warranty'
                     else:
                         contract_type = 'Service'
+
                     data.update({'line_contract_type': contract_type})
+
                     if contract_type == 'Service':
                         # Skipping the services, only want the warranties
                         continue
@@ -204,14 +220,23 @@ class Dell(WarrantyBase, object):
                     except KeyError:
                         pass
 
-                    start_date = sub_item['startDate'].split('T')[0]
-                    end_date = sub_item['endDate'].split('T')[0]
+                    # start date and end date may be missing from payload so it is only posted when it has a value
+                    # otherwise it is given a max or min date value and only used for hashing
+                    try:
+                        start_date = sub_item['startDate'].split('T')[0]
+                        data.update({'line_start_date': start_date})
+                    except AttributeError:
+                        start_date = '0001-01-01'
 
-                    data.update({'line_start_date': start_date})
-                    data.update({'line_end_date': end_date})
+                    try:
+                        end_date = sub_item['endDate'].split('T')[0]
+                        data.update({'line_end_date': end_date})
+                    except AttributeError:
+                        end_date = '9999-12-31'
 
                     # update or duplicate? Compare warranty dates by serial, contract_id, start date and end date
                     hasher = serial + line_contract_id + start_date + end_date
+
                     try:
                         d_purchase_id, d_order_no, d_line_no, d_contractid, d_start, d_end, forcedupdate = purchases[hasher]
 

@@ -6,7 +6,7 @@ url =
 
 [discover]
 # enable/disable discoveries
-cisco = True
+cisco = False
 dell = False
 hp = False
 ibm = False
