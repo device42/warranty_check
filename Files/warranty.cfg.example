@@ -15,8 +15,9 @@ forcedupdate = False
 
 [dell]
 # set api_key as provided by Dell
-api_key =
-url = https://sandbox.api.dell.com/support/assetinfo/v4/getassetwarranty
+client_id =
+client_secret =
+url = https://apigtwb2c.us.dell.com/PROD/sbil/eapi/v5/asset-entitlements
 
 [hp]
 # set api_key as provided by HP
