@@ -10,8 +10,8 @@ cisco = True
 dell = True
 hp = True
 ibm = True
-lenovo = False
-meraki = False
+lenovo = True
+meraki = True
 forcedupdate = False
 
 [cisco]
