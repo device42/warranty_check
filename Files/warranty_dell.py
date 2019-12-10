@@ -201,8 +201,10 @@ class Dell(WarrantyBase, object):
                         if sub_item['serviceLevelDescription'] is not None:
                             if 'Parts' in sub_item['serviceLevelDescription'] or 'Onsite' in sub_item['serviceLevelDescription']:
                                 contract_type = 'Warranty'
-                        else:  # no useful information, continue to next entitlement item
+                        else:  # service level description is null, continue to next entitlement item
                             continue
+                    else:  # service level description not listed in entitlement, continue to next item
+                        continue
 
                     data.update({'line_contract_type': contract_type})
 
