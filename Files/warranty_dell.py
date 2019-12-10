@@ -195,23 +195,16 @@ class Dell(WarrantyBase, object):
                     # so notes is now used for identification
                     # Mention this to device42
 
-                    if 'serviceLevelGroup' in sub_item:
-                        service_level_group = sub_item['serviceLevelGroup']
-                    else:
-                        service_level_group = None
+                    contract_type = 'Service'  # default contract type
 
-                    if service_level_group == -1 or service_level_group == 5 or service_level_group == 8 or service_level_group == 99999:
-                        contract_type = 'Warranty'
-                    elif service_level_group == 11 and 'compellent' in product_id:
-                        contract_type = 'Warranty'
-                    else:
-                        contract_type = 'Service'
+                    if 'serviceLevelDescription' in sub_item:
+                        if sub_item['serviceLevelDescription'] is not None:
+                            if 'Parts' in sub_item['serviceLevelDescription'] or 'Onsite' in sub_item['serviceLevelDescription']:
+                                contract_type = 'Warranty'
+                        else:  # no useful information, continue to next entitlement item
+                            continue
 
                     data.update({'line_contract_type': contract_type})
-
-                    if contract_type == 'Service':
-                        # Skipping the services, only want the warranties
-                        continue
 
                     try:
                         # There's a max 64 character limit on the line service type field in Device42 (version 13.1.0)

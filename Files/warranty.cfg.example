@@ -6,10 +6,10 @@ url =
 
 [discover]
 # enable/disable discoveries
-cisco = False
-dell = False
-hp = False
-ibm = False
+cisco = True
+dell = True
+hp = True
+ibm = True
 lenovo = False
 meraki = False
 forcedupdate = False

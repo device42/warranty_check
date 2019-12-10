@@ -22,6 +22,8 @@ In order for this script to check warranty status of the device, the device must
 - IBM script points to warranty info not related to the SKU, serial given
 - If a Meraki product has a licence with a renewal required state, the expiration date will be set to the current date
 
+## Change Log
+
 ## Usage
 - Set required parameters in warranty.cfg file and run starter.py script:
 
