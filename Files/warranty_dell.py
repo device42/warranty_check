@@ -92,13 +92,13 @@ class Dell(WarrantyBase, object):
         inline_serials = ','.join(inline_serials)
 
         if self.expires_at is None or self.expires_at is not None and self.expires_at <= datetime.utcnow():
-            if self.debug > 1:
+            if self.debug:
                 print 'attempting to acquire access_token'
 
             self.get_access_token(self.client_id, self.client_secret)
 
         if self.access_token is None:
-            if self.debug > 1:
+            if self.debug:
                 print 'unable to acquire access_token'
             return None
 
@@ -168,11 +168,6 @@ class Dell(WarrantyBase, object):
                     except AttributeError:
                         ship_date = None
 
-                    try:
-                        product_id = item['ProductId']
-                    except KeyError:
-                        product_id = 'notspecified'
-
                     data.update({'order_no': order_no})
 
                     if ship_date:
@@ -215,19 +210,17 @@ class Dell(WarrantyBase, object):
                     except KeyError:
                         pass
 
-                    # start date and end date may be missing from payload so it is only posted when it has a value
-                    # otherwise it is given a max or min date value and only used for hashing
+                    # start date and end date may be missing from payload so it is only posted when both have values
                     try:
                         start_date = sub_item['startDate'].split('T')[0]
-                        data.update({'line_start_date': start_date})
-                    except AttributeError:
-                        start_date = '0001-01-01'
-
-                    try:
                         end_date = sub_item['endDate'].split('T')[0]
+                        data.update({'line_start_date': start_date})
                         data.update({'line_end_date': end_date})
                     except AttributeError:
-                        end_date = '9999-12-31'
+                        if self.debug:
+                            print('[Alert]: SN:', serial, ': Missing start and end date for a listed entitlement')
+                            print(left(sub_item['serviceLevelDescription'], 64))
+                        continue
 
                     # update or duplicate? Compare warranty dates by serial, contract_id, start date and end date
                     hasher = serial + line_contract_id + start_date + end_date
