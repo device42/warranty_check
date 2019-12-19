@@ -38,7 +38,7 @@ class Dell(WarrantyBase, object):
     def get_access_token(self, client_id, client_secret):
         access_token_request_url = "https://apigtwb2c.us.dell.com/auth/oauth/v2/token"
 
-        timeout = 10
+        timeout = 60
 
         payload = {
             'client_id': client_id,
@@ -72,7 +72,7 @@ class Dell(WarrantyBase, object):
 
         if self.debug:
             print '\t[+] Checking warranty info for "%s"' % inline_serials
-        timeout = 10
+        timeout = 60
 
         # making sure the warranty also gets updated if the serial has been changed by decom lifecycle process
         incoming_serials = inline_serials.split(',')
