@@ -8,8 +8,9 @@ This script checks warranty status for Dell, HP, IBM, Lenovo and Meraki manufact
 
 ## Prerequisites
 In order for this script to check warranty status of the device, the device must have hardware model and serial number entered in Device42. Dell Warranty Status API key must be acquired as well.
-- Device42 Hardware model must have "Dell", "Hewlett Packard", "IBM", "LENOVO" or "Meraki" in it's manufacturer data.
-- Device42 Serial number must be set to "Dell", "Hewlett Packard", "IBM", "LENOVO" or "Meraki" device serial number.
+- Device42 Hardware model must have "Cisco", "Dell", "Hewlett Packard", "IBM", "LENOVO" or "Meraki" in it's manufacturer data.
+- Device42 Serial number must be set to "Cisco", "Dell", "Hewlett Packard", "IBM", "LENOVO" or "Meraki" device serial number.
+- Cisco's client id and client secret can be obtained by completing their on-boarding form. Please follow the instructions from here: https://www.cisco.com/c/en/us/support/docs/services/sntc/onboarding_guide.html instructions for enabling the Cisco support APIs can be found here: https://apiconsole.cisco.com/documentation
 - Dell's client id and client secret can be obtained by filling the on-boarding form. New and existing API users will need to register an account with TechDirect. Please check: http://en.community.dell.com/dell-groups/supportapisgroup/
 - HP's API key can be obtained by filling the on-boarding form. Please, follow the instructions from here: https://developers.hp.com/css-enroll
 - Merakis API key can be obtained by going to the organization > settings page on the Meraki dashboard. Ensure that the enable access to API checkbox is selected then go to your profile to generate the API key. Please check https://developer.cisco.com/meraki/api/#/rest/getting-started/what-can-the-api-be-used-for
@@ -22,7 +23,6 @@ In order for this script to check warranty status of the device, the device must
 - If a Meraki product has a licence with a renewal required state, the expiration date will be set to the current date
 
 ## Change Log
-- Please check `CHANGELOG.md`
 
 ## Usage
 - Set required parameters in warranty.cfg file and run starter.py script:

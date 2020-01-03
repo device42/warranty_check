@@ -3,8 +3,7 @@ import sys
 import time
 import random
 import requests
-import datetime
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 
 from shared import DEBUG, RETRY, ORDER_NO_TYPE, left
 from warranty_abstract import WarrantyBase
@@ -15,9 +14,10 @@ except:
     pass
 
 
-class Dell(WarrantyBase, object):
+class Cisco(WarrantyBase, object):
+
     def __init__(self, params):
-        super(Dell, self).__init__()
+        super(Cisco, self).__init__()
         self.url = params['url']
         self.client_id = params['client_id']
         self.client_secret = params['client_secret']
@@ -36,15 +36,16 @@ class Dell(WarrantyBase, object):
 
     # OAth 2.0
     def get_access_token(self, client_id, client_secret):
-        access_token_request_url = "https://apigtwb2c.us.dell.com/auth/oauth/v2/token"
+        access_token_request_url = "https://cloudsso.cisco.com/as/token.oauth2"
 
-        timeout = 60
+        timeout = 10
 
         payload = {
             'client_id': client_id,
             'client_secret': client_secret,
             'grant_type': 'client_credentials'
         }
+
         try:
             resp = requests.post(access_token_request_url, data=payload, timeout=timeout)
 
@@ -72,7 +73,7 @@ class Dell(WarrantyBase, object):
 
         if self.debug:
             print '\t[+] Checking warranty info for "%s"' % inline_serials
-        timeout = 60
+        timeout = 10
 
         # making sure the warranty also gets updated if the serial has been changed by decom lifecycle process
         incoming_serials = inline_serials.split(',')
@@ -91,20 +92,22 @@ class Dell(WarrantyBase, object):
             inline_serials.append(d42_serial)
         inline_serials = ','.join(inline_serials)
 
+        # check to see if the access token is expired, if it is get a new one, else, continue
         if self.expires_at is None or self.expires_at is not None and self.expires_at <= datetime.utcnow():
-            if self.debug:
+            if self.debug > 1:
                 print 'attempting to acquire access_token'
 
             self.get_access_token(self.client_id, self.client_secret)
 
         if self.access_token is None:
-            if self.debug:
+            if self.debug > 1:
                 print 'unable to acquire access_token'
             return None
 
+        # get the device information using the requested access token
+        # maximum serials per request is 70 devices with a maximum length of 40 separated by commas
         payload = {
-            'servicetags': inline_serials,
-            'Method': 'GET',
+            'sr_no': inline_serials
         }
 
         headers = {
@@ -112,6 +115,7 @@ class Dell(WarrantyBase, object):
             'Authorization': self.access_token
         }
 
+        # request serial number information
         try:
             resp = requests.get(self.url, params=payload, headers=headers, verify=True, timeout=timeout)
             msg = 'Status code: %s' % str(resp.status_code)
@@ -136,97 +140,64 @@ class Dell(WarrantyBase, object):
         global full_serials
         data = {}
 
-        for item in result:
-            try:
-                warranties = item['entitlements']
-            except IndexError:
-                if self.debug:
-                    try:
-                        msg = str(result['InvalidFormatAssets']['BadAssets'])
-                        if msg:
-                            print '\t\t[-] Error: Bad asset: %s' % msg
-                    except Exception as e:
-                        print e
+        if 'serial_numbers' in result:
+            for device in result['serial_numbers']:
+                try:
+                    if self.order_no == 'common':
+                        order_no = self.common
+                    else:
+                        order_no = self.generate_random_order_no()
 
-            else:
-                if self.order_no == 'common':
-                    order_no = self.common
-                else:
-                    order_no = self.generate_random_order_no()
+                    serial = device['sr_no']
 
-                serial = item['serviceTag']
-
-                # We need check per warranty service item
-                for sub_item in warranties:
                     data.clear()
 
-                    try:
-                        if 'shipDate' in item:
-                            ship_date = item['shipDate'].split('T')[0]
-                        else:
-                            ship_date = None
-                    except AttributeError:
-                        ship_date = None
-
                     data.update({'order_no': order_no})
-
-                    if ship_date:
-                        data.update({'po_date': ship_date})
-
                     data.update({'completed': 'yes'})
 
-                    data.update({'vendor': 'Dell Inc.'})
+                    data.update({'vendor': 'Cisco'})
                     data.update({'line_device_serial_nos': full_serials[serial]})
                     data.update({'line_type': 'contract'})
                     data.update({'line_item_type': 'device'})
                     data.update({'line_completed': 'yes'})
 
-                    line_contract_id = sub_item['itemNumber']
+                    try:
+                        line_contract_id = device['service_contract_number']
+                    except KeyError:
+                        line_contract_id = "Not Available"
 
                     data.update({'line_notes': line_contract_id})
                     data.update({'line_contract_id': line_contract_id})
 
-                    # Using notes as well as the Device42 API doesn't give back the line_contract_id,
-                    # so notes is now used for identification
-                    # Mention this to device42
+                    try:
+                        warranty_type = device['warranty_type']
+                    except KeyError:
+                        warranty_type = "Service"
 
-                    contract_type = 'Service'  # default contract type
+                    data.update({'line_contract_type': warranty_type})
 
-                    if 'serviceLevelDescription' in sub_item:
-                        if sub_item['serviceLevelDescription'] is not None:
-                            if 'Parts' in sub_item['serviceLevelDescription'] or 'Onsite' in sub_item['serviceLevelDescription']:
-                                contract_type = 'Warranty'
-                        else:  # service level description is null, continue to next entitlement item
-                            continue
-                    else:  # service level description not listed in entitlement, continue to next item
+                    if warranty_type == 'Service':
+                        # Skipping the services, only want the warranties
                         continue
 
-                    data.update({'line_contract_type': contract_type})
-
                     try:
-                        # There's a max 64 character limit on the line service type field in Device42 (version 13.1.0)
-                        service_level_description = left(sub_item['serviceLevelDescription'], 64)
-                        data.update({'line_service_type': service_level_description})
+                        # max 64 character limit on the line service type field in Device42 (version 13.1.0)
+                        service_line_description = left(device['service_line_descr'], 64)
+                        data.update({'line_service_type': service_line_description})
                     except KeyError:
                         pass
 
-                    # start date and end date may be missing from payload so it is only posted when both have values
-                    try:
-                        start_date = sub_item['startDate'].split('T')[0]
-                        end_date = sub_item['endDate'].split('T')[0]
-                        data.update({'line_start_date': start_date})
-                        data.update({'line_end_date': end_date})
-                    except AttributeError:
-                        if self.debug:
-                            print('[Alert]: SN:', serial, ': Missing start and end date for a listed entitlement')
-                            print(left(sub_item['serviceLevelDescription'], 64))
-                        continue
+                    start_date = "0001-01-01"
+                    end_date = device['warranty_end_date']
+                    data.update({'line_end_date': end_date})
 
-                    # update or duplicate? Compare warranty dates by serial, contract_id, start date and end date
+                    # Compare warranty dates by serial, contract_id, start date and end date
+                    # Start date is not provided in request response so the date is simply used for hasher
                     hasher = serial + line_contract_id + start_date + end_date
 
                     try:
-                        d_purchase_id, d_order_no, d_line_no, d_contractid, d_start, d_end, forcedupdate = purchases[hasher]
+                        d_purchase_id, d_order_no, d_line_no, d_contractid, d_start, d_end, forcedupdate = \
+                            purchases[hasher]
 
                         if forcedupdate:
                             data['purchase_id'] = d_purchase_id
@@ -237,8 +208,13 @@ class Dell(WarrantyBase, object):
                         if d_contractid == line_contract_id and d_start == start_date and d_end == end_date:
                             print '\t[!] Duplicate found. Purchase ' \
                                   'for SKU "%s" and "%s" with end date "%s" ' \
-                                  'order_id: %s and line_no: %s' % (serial, line_contract_id, end_date, d_purchase_id, d_line_no)
-
+                                  'order_id: %s and line_no: %s' % (
+                                      serial, line_contract_id, end_date, d_purchase_id, d_line_no)
                     except KeyError:
-                        self.d42_rest.upload_data(data)
-                        data.clear()
+                        raise KeyError
+
+                except KeyError:
+                    self.d42_rest.upload_data(data)
+                    data.clear()
+        else:
+            print 'API result did not report devices.'
