@@ -85,6 +85,8 @@ class Meraki(WarrantyBase, object):
                 else:
                     order_no = self.generate_random_order_no()
 
+                stripped_serial_no = str(serial_number).replace('-', '').strip()
+
                 data.update({'order_no': order_no})
                 data.update({'completed': 'yes'})
                 data.update({'vendor': 'Meraki'})
@@ -93,9 +95,13 @@ class Meraki(WarrantyBase, object):
                 data.update({'line_item_type': 'device'})
                 data.update({'line_completed': 'yes'})
 
+                data.update({'line_notes': stripped_serial_no})
+                data.update({'line_contract_id': stripped_serial_no})
+
                 # warranty - Note: Meraki product warranties are a combined average so there is no way of knowing start
                 # date for a particular device
                 data.update({'line_contract_type': 'Warranty'})
+                data.update({'line_start_date': "0001-01-01"})
                 data.update({'line_end_date': license_expiration})
 
                 all_data.append(copy.deepcopy(data))
