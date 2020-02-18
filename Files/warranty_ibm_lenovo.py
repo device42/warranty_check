@@ -6,7 +6,7 @@ import copy
 import random
 import requests
 
-from shared import DEBUG, RETRY, ORDER_NO_TYPE, left
+from shared import DEBUG, RETRY, ORDER_NO_TYPE, left, Device42rest
 from warranty_abstract import WarrantyBase
 
 try:
@@ -19,7 +19,7 @@ class IbmLenovo(WarrantyBase, object):
     def __init__(self, vendor, params):
         super(IbmLenovo, self).__init__()
         self.url = params['url']
-        self.url2 = params['url2']
+        self.client_id = params['client_id']
         self.debug = DEBUG
         self.retry = RETRY
         self.order_no = ORDER_NO_TYPE
@@ -31,12 +31,18 @@ class IbmLenovo(WarrantyBase, object):
         if self.order_no == 'common':
             self.common = self.generate_random_order_no()
 
-    def get_product_info(self, serial, retry=True):
+    def get_product_info(self, serials, retry=True):
         if self.debug:
-            print '\t[+] Checking possible product "%s"' % serial
-        timeout = 10
+            print '\t[+] Checking possible product "%s"' % serials
+
+        timeout = 30
+
+        headers = {
+            'ClientID': self.client_id
+        }
+
         try:
-            resp = self.requests.get(self.url + '?productId=' + serial, verify=True, timeout=timeout)
+            resp = self.requests.get(self.url + '?Serial=' + serials, headers=headers, verify=True, timeout=timeout)
             msg = 'Status code: %s' % str(resp.status_code)
             if str(resp.status_code) == '401':
                 print '\t[!] HTTP error. Message was: %s' % msg
@@ -45,75 +51,58 @@ class IbmLenovo(WarrantyBase, object):
                 time.sleep(30)
                 if retry:
                     print '\n[!] Retry'
-                    self.get_product_info(serial, False)
+                    self.get_product_info(serials, False)
                 else:
                     return None
             else:
+                # todo: used to get an example response for development
+                if self.debug:
+                    print resp.json()
                 return resp.json()
         except requests.RequestException as e:
             self.error_msg(e)
             return None
 
     def run_warranty_check(self, inline_serials, retry=True):
+        global full_serials
+        full_serials = {}
+
         if self.debug:
             print '\t[+] Checking warranty "%s"' % inline_serials
-        timeout = 10
-        result = []
 
-        for serial in inline_serials.split(','):
-            product_info = self.get_product_info(serial)
-            current_product = None
+        incoming_serials = inline_serials.split(',')
+        inline_serials = []
 
-            if len(product_info) > 1:
-                for product in product_info:
-                    current_product = self.get_product_info(product['Name'])[0]
-                    if current_product['Name'] is not None:
-                        break
+        for d42_serial in incoming_serials:
+            d42_serial = d42_serial.upper()
+            if '_' in d42_serial:
+                full_serials.update({d42_serial.split('_')[0]: d42_serial})
+                d42_serial = d42_serial.split('_')[0]
+            elif '(' in d42_serial:
+                full_serials.update({d42_serial.split('(')[0]: d42_serial})
+                d42_serial = d42_serial.split('(')[0]
             else:
-                try:
-                    current_product = product_info[0]
-                except IndexError:
-                    print '\t[+] Unable to find "%s" orders' % serial
-                    continue
+                full_serials.update({d42_serial: d42_serial})
+            inline_serials.append(d42_serial)
+        inline_serials = ','.join(inline_serials)
 
-            if current_product is not None:
-
-                url = self.url2 + '/' + current_product['Id'] + '?tabName=Warranty&beta=false'
-
-                resp = self.requests.post(
-                    url,
-                    data={'SERIALNUMBERKEY': current_product['Serial']},
-                    verify=True,
-                    timeout=timeout
-                )
-
-                # possible redirects
-                if resp.url != url:
-                    resp = self.requests.post(
-                        resp.url,
-                        data={'SERIALNUMBERKEY': current_product['Serial']},
-                        verify=True,
-                        timeout=timeout
-                    )
-
-                data_object = re.search(r"ds_warranties=(.*?});", resp.text)
-                json_object = json.loads(data_object.group(1))
-                result.append(json_object)
-
+        result = self.get_product_info(inline_serials, retry)
         return result
 
     def process_result(self, result, purchases):
+        global full_serials
         data = {}
 
         for item in result:
 
-            if 'BaseWarranties' in item and len(item['BaseWarranties']) > 0:
-                warranties = item['BaseWarranties']
+            # Warranties
+            if 'Warranty' in item and len(item['Warranty']) > 0:
+                warranties = item['Warranty']
             else:
                 continue
 
             data.clear()
-            serial = item['Serial']
+            serial = item['ID']
 
             if self.order_no == 'common':
                 order_no = self.common
@@ -135,24 +124,27 @@ class IbmLenovo(WarrantyBase, object):
 
             lines = []
 
+            # process warranty line items for a device
             for warranty in warranties:
-
-                start_date = warranty['Start']['UTC'].split('T')[0]
-                end_date = warranty['End']['UTC'].split('T')[0]
+                try:
+                    start_date = warranty['Start']['UTC'].split('T')[0]
+                    end_date = warranty['End']['UTC'].split('T')[0]
+                except (KeyError, AttributeError):
+                    continue
 
                 data.update({'line_start_date': start_date})
                 data.update({'line_end_date': end_date})
-                data.update({'line_contract_type': warranty['Origin']})
+                data.update({'line_contract_type': warranty['Type']})
 
                 try:
                     # There's a max 64 character limit on the line service type field in Device42 (version 13.1.0)
-                    service_level_description = left(sub_item['ServiceLevelDescription'], 64)
+                    service_level_description = left(warranty['Name'], 64)
                     data.update({'line_service_type': service_level_description})
                 except:
                     pass
 
                 # update or duplicate? Compare warranty dates by serial, contract_id and end date
-                hasher = serial.split('.')[0] + start_date + end_date
+                hasher = serial + start_date + end_date
 
                 try:
                     d_purchase_id, d_order_no, d_line_no, d_contractid, d_start, d_end, forcedupdate = purchases[hasher]
@@ -173,3 +165,57 @@ class IbmLenovo(WarrantyBase, object):
             for line in lines:
                 self.d42_rest.upload_data(line)
             data.clear()
+
+
+if __name__ == '__main__':
+    """
+
+    test_serials = '1234, 1234, 1234, 1234'
+
+    d42_params = {
+        'username': 'admin',
+        'password': 'adm!nd42',
+        'url': 'http://192.168.92.130:8000'
+    }
+
+    d42_rest = Device42rest(d42_params)
+
+    vendor = "lenovo"
+    ibm_lenovo_params = {
+        'url': 'https://SupportAPI.lenovo.com/v2.5/Warranty',
+        'd42_rest': d42_rest
+    }
+
+    test = IbmLenovo(vendor, ibm_lenovo_params)
+
+    result = test.run_warranty_check(test_serials, True)
+
+    # get purchases data from Device42
+    orders = d42_rest.get_purchases()
+    purchases = {}
+
+    if orders and 'purchases' in orders:
+        for order in orders['purchases']:
+            if 'line_items' in order:
+                purchase_id = order.get('purchase_id')
+                order_no = order.get('order_no')
+
+                for line_item in order['line_items']:
+                    line_no = line_item.get('line_no')
+                    devices = line_item.get('devices')
+                    contractid = line_item.get('line_notes')
+                    # POs with no start and end dates will now be included and given a hasher key with date min and max
+                    start = line_item.get('line_start_date')
+                    end = line_item.get('line_end_date')
+
+                    if start and end and devices:
+                        for device in devices:
+                            if 'serial_no' in device:
+                                serial = device['serial_no']
+                                hasher = serial + contractid + start + end
+                                if hasher not in purchases:
+                                    purchases[hasher] = [purchase_id, order_no, line_no, contractid, start, end,
+                                                         'False']
+    
+    test.process_result(result, purchases)
+    """
