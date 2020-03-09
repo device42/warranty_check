@@ -61,7 +61,7 @@ def get_vendor_api(name):
     elif vendor == 'ibm' or vendor == 'lenovo':
         ibm_lenovo_params = {
             'url': current_cfg['url'],
-            'url2': current_cfg['url2'],
+            'client_id': current_cfg['client_id'],
             'd42_rest': d42_rest
         }
         api = IbmLenovo(vendor, ibm_lenovo_params)
