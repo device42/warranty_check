@@ -33,15 +33,15 @@ api_secret =
 url = https://css.api.hp.com
 
 [ibm]
-url = http://support.lenovo.com/services/us/en/ContentService/GetProducts
-url2 = http://support.lenovo.com/us/en/products
+url = https://SupportAPI.lenovo.com/v2.5/Warranty
+client_id =
 
 [lenovo]
-url = http://support.lenovo.com/services/us/en/ContentService/GetProducts
-url2 = http://support.lenovo.com/us/en/products
+url = https://SupportAPI.lenovo.com/v2.5/Warranty
+client_id =
 
 [meraki]
-api_key = 
+api_key =
 url = https://api.meraki.com/api/v0
 
 [other]

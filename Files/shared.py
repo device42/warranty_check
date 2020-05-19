@@ -118,19 +118,19 @@ class Config:
     def __get_ibm_cfg(self):
         # IBM  ---------------------------------------------
         ibm_url = self.cc.get('ibm', 'url')
-        ibm_url2 = self.cc.get('ibm', 'url2')
+        client_id = self.cc.get('ibm', 'client_id')
         return {
             'url': ibm_url,
-            'url2': ibm_url2
+            'client_id': client_id
         }
 
     def __get_lenovo_cfg(self):
         # lenovo -------------------------------------------
         lenovo_url = self.cc.get('lenovo', 'url')
-        lenovo_url2 = self.cc.get('lenovo', 'url2')
+        client_id = self.cc.get('lenovo', 'client_id')
         return {
             'url': lenovo_url,
-            'url2': lenovo_url2
+            'client_id': client_id
         }
 
     def __get_meraki_cfg(self):
