@@ -38,11 +38,16 @@ class IbmLenovo(WarrantyBase, object):
         timeout = 30
 
         headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
             'ClientID': self.client_id
         }
 
+        params = {
+            'Serial': serials
+        }
+
         try:
-            resp = self.requests.get(self.url + '?Serial=' + serials, headers=headers, verify=True, timeout=timeout)
+            resp = self.requests.get(self.url, params=params, headers=headers, verify=True, timeout=timeout)
             msg = 'Status code: %s' % str(resp.status_code)
             if str(resp.status_code) == '401':
                 print '\t[!] HTTP error. Message was: %s' % msg
@@ -55,9 +60,10 @@ class IbmLenovo(WarrantyBase, object):
                 else:
                     return None
             else:
-                # todo: used to get an example response for development
                 if self.debug:
+                    print
                     print resp.json()
+                    print
                 return resp.json()
         except requests.RequestException as e:
             self.error_msg(e)
@@ -84,7 +90,6 @@ class IbmLenovo(WarrantyBase, object):
             else:
                 full_serials.update({d42_serial: d42_serial})
             inline_serials.append(d42_serial)
-        inline_serials = ','.join(inline_serials)
 
         result = self.get_product_info(inline_serials, retry)
         return result
@@ -93,8 +98,12 @@ class IbmLenovo(WarrantyBase, object):
         global full_serials
         data = {}
 
-        for item in result:
+        # The API returns results for single devices in a different format than multiple devices, this keeps everything
+        # returned from the API in the same list format
+        if 'Warranty' in result:
+            result = [result]
 
+        for item in result:
             # Warranties
             if 'Warranty' in item and len(item['Warranty']) > 0:
                 warranties = item['Warranty']
@@ -102,7 +111,7 @@ class IbmLenovo(WarrantyBase, object):
                 continue
 
             data.clear()
-            serial = item['ID']
+            serial = item['Serial']
 
             if self.order_no == 'common':
                 order_no = self.common
@@ -127,8 +136,8 @@ class IbmLenovo(WarrantyBase, object):
             # process warranty line items for a device
             for warranty in warranties:
                 try:
-                    start_date = warranty['Start']['UTC'].split('T')[0]
-                    end_date = warranty['End']['UTC'].split('T')[0]
+                    start_date = warranty['Start'].split('T')[0]
+                    end_date = warranty['End'].split('T')[0]
                 except (KeyError, AttributeError):
                     continue
 
