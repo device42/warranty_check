@@ -8,7 +8,6 @@ url =
 # enable/disable discoveries
 cisco = True
 dell = True
-hp = True
 ibm = True
 lenovo = True
 meraki = True
@@ -25,12 +24,6 @@ url = https://api.cisco.com/sn2info/v2/coverage/summary/serial_numbers
 client_id =
 client_secret =
 url = https://apigtwb2c.us.dell.com/PROD/sbil/eapi/v5/asset-entitlements
-
-[hp]
-# set api_key as provided by HP
-api_key =
-api_secret =
-url = https://css.api.hp.com
 
 [ibm]
 url = http://support.lenovo.com/services/us/en/ContentService/GetProducts
